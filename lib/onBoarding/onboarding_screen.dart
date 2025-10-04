@@ -51,7 +51,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _navigateToHome() {
     // TODO: Ganti dengan navigasi ke halaman utama aplikasi Anda
     // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => HomeScreen()));
-    print("Navigate to Home Screen");
   }
 
   @override
@@ -191,9 +190,9 @@ class OnboardingPageContent extends StatelessWidget {
               ),
                boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.3),
-                  spreadRadius: 2,
-                  blurRadius: 8,
+                  color: Colors.black.withOpacity(0.08),
+                  spreadRadius: 4,
+                  blurRadius: 12,
                   offset: const Offset(0, 4), // changes position of shadow
                 ),
               ],
