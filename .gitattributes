@@ -1,85 +1,86 @@
-# =========
-# Text & EOL normalization
-# =========
-* text=auto
+# =========================
+# FLUTTER / DART
+# =========================
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+**/doc/api/
+**/ios/Flutter/.last_build_id
 
-# Source code -> LF
-*.dart   text eol=lf
-*.kt     text eol=lf
-*.kts    text eol=lf
-*.java   text eol=lf
-*.gradle text eol=lf
-*.xml    text eol=lf
-*.yml    text eol=lf
-*.yaml   text eol=lf
-*.json   text eol=lf
-*.md     text eol=lf
-*.c      text eol=lf
-*.cc     text eol=lf
-*.cpp    text eol=lf
-*.h      text eol=lf
-*.hpp    text eol=lf
-*.m      text eol=lf
-*.mm     text eol=lf
-*.swift  text eol=lf
-*.sh     text eol=lf
-*.ts     text eol=lf
-*.tsx    text eol=lf
-*.js     text eol=lf
-*.jsx    text eol=lf
-*.css    text eol=lf
-*.scss   text eol=lf
+# Build & coverage
+/build/
+coverage/
 
-# Windows scripts -> CRLF
-*.bat    text eol=crlf
-*.cmd    text eol=crlf
-*.ps1    text eol=crlf
+# Flutter generated/ephemeral per platform
+ios/Flutter/ephemeral/
+macos/Flutter/ephemeral/
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
 
-# =========
-# Binary files (no EOL conversion)
-# =========
-*.png   -text
-*.jpg   -text
-*.jpeg  -text
-*.gif   -text
-*.webp  -text
-*.ico   -text
-*.bmp   -text
-*.psd   -text
-*.svg   -text
-*.ttf   -text
-*.otf   -text
-*.woff  -text
-*.woff2 -text
-*.mp3   -text
-*.wav   -text
-*.mp4   -text
-*.mov   -text
-*.avi   -text
-*.zip   -text
-*.7z    -text
-*.rar   -text
-*.tar   -text
-*.gz    -text
-*.pdf   -text
+# (Catatan)
+# pubspec.lock SEBAIKNYA DI-COMMIT untuk aplikasi (bukan package),
+# jadi JANGAN di-ignore.
 
-# =========
-# Flutter generated files (mark as generated for GitHub linguist)
-# =========
-# Android/Gradle intermediates should be ignored via .gitignore,
-# but if any generated files slip in, mark them as generated:
-**/flutter/generated_* linguist-generated
-ios/Flutter/**            linguist-generated
-macos/Flutter/**          linguist-generated
-linux/flutter/**          linguist-generated
-windows/flutter/**        linguist-generated
-# Dart tool cache (should be ignored) — if committed, treat as generated:
-.dart_tool/**             linguist-generated
+# =========================
+# ANDROID
+# =========================
+android/.gradle/
+android/local.properties
+android/app/*.keystore
+android/app/*.jks
 
-# =========
-# Lock files (treated as text; keep LF for cross-platform consistency)
-# =========
-pubspec.lock  text eol=lf
-package-lock.json text eol=lf
-pnpm-lock.yaml   text eol=lf
-yarn.lock        text eol=lf
+# Output bundles/apks (Android Studio artifacts)
+android/app/debug
+android/app/profile
+android/app/release
+
+# =========================
+# iOS / macOS
+# =========================
+ios/.symlinks/
+ios/Pods/
+ios/Podfile.lock
+macos/Pods/
+macos/Podfile.lock
+
+# =========================
+# WINDOWS / LINUX (tooling)
+# =========================
+# (file ephemeral sudah di atas, tidak perlu tambahan)
+
+# =========================
+# IDE / EDITOR
+# =========================
+.idea/
+*.iml
+# Uncomment jika ingin mengabaikan setelan VS Code lokal:
+#.vscode/
+
+# =========================
+# LOGS / MISC
+# =========================
+*.log
+*.class
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# =========================
+# WEB / VITE / NODE (jika ada)
+# =========================
+node_modules/
+dist/
+# build output lain (opsional):
+# .next/
+# out/
+# build-web/
