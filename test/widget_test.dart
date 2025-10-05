@@ -1,30 +1,32 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:gizi_sehat_mobile_app/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Flow: Onboarding -> LoginScreen', (WidgetTester tester) async {
+    // Build the app
+    await tester.pumpWidget(const GiziSehatApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Halaman Onboarding harus tampil, tombol "Lanjut" ada
+    expect(find.text('Lanjut'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Tap "Lanjut" dua kali untuk ke slide terakhir (sesuaikan jumlah slide kamu)
+    await tester.tap(find.text('Lanjut'));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text('Lanjut'));
+    await tester.pumpAndSettle();
+
+    // Di slide terakhir, tombol berubah menjadi "Mulai Sekarang"
+    expect(find.text('Mulai Sekarang'), findsOneWidget);
+
+    // Tap "Mulai Sekarang" -> pindah ke LoginScreen
+    await tester.tap(find.text('Mulai Sekarang'));
+    await tester.pumpAndSettle();
+
+    // Verifikasi elemen khas LoginScreen
+    expect(find.text('Masuk ke Akun Anda'), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Masuk'), findsOneWidget);
   });
 }
