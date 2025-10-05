@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gizi_sehat_mobile_app/onBoarding/onboarding_screen.dart'; // Ditambahkan
+import 'package:gizi_sehat_mobile_app/screen/onboarding_screen.dart'; // Ditambahkan
 
 void main() {
   runApp(const MyApp());
