@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
 import 'package:gizi_sehat_mobile_app/features/profile/state/theme_provider.dart';
+import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
+import 'package:gizi_sehat_mobile_app/app_router.dart';
 import 'package:gizi_sehat_mobile_app/widgets/status_badge.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -12,31 +15,28 @@ class ProfilePage extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final headingColor = isDark
-        ? AppColors.darkTextPrimary
-        : AppColors.lightTextPrimary;
+    final headingColor =
+    isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
 
-    final subtitleColor = isDark
-        ? AppColors.darkTextSecondary
-        : AppColors.lightTextSecondary;
+    final subtitleColor =
+    isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
-    final sectionBg = theme.colorScheme.surface; // 1C1C1C or white
-    final borderColor = isDark
-        ? AppColors.darkBorder
-        : AppColors.lightBorder;
+    final sectionBg = theme.colorScheme.surface;
+    final borderColor =
+    isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
-    final innerCardBg = isDark
-        ? const Color(0xFF262626)
-        : const Color(0xFFF9F9F9);
+    final innerCardBg =
+    isDark ? const Color(0xFF262626) : const Color(0xFFF9F9F9);
 
-    final avatarBg = isDark
-        ? AppColors.accent.withOpacity(0.15)
-        : AppColors.accent.withOpacity(0.15);
+    final avatarBg = AppColors.accent.withOpacity(0.15);
 
     final themeProvider = context.watch<ThemeProvider>();
     final darkModeOn = themeProvider.isDark;
 
-    // --- Widget: Anak tile row (Sari/Budi)
+    final auth = context.watch<AuthProvider>();
+    final userEmail = auth.currentEmail ?? '-';
+
+    // Widget builder childTile
     Widget childTile({
       required String name,
       required String desc1,
@@ -53,7 +53,7 @@ class ProfilePage extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // icon avatar kecil anak
+            // Avatar anak
             Container(
               width: 40,
               height: 40,
@@ -69,12 +69,12 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(width: 12),
 
-            // info anak (nama, usia, gender)
+            // Tulisan anak
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // row: nama + badge + edit icon
+                  // row: nama + badge + edit
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -114,10 +114,8 @@ class ProfilePage extends StatelessWidget {
       );
     }
 
-    // --- Widget: SectionCard wrapper
-    Widget sectionCard({
-      required Widget child,
-    }) {
+    // section wrapper
+    Widget sectionCard({required Widget child}) {
       return Container(
         decoration: BoxDecoration(
           color: sectionBg,
@@ -130,13 +128,26 @@ class ProfilePage extends StatelessWidget {
       );
     }
 
+    Future<void> handleLogout() async {
+      await context.read<AuthProvider>().logout();
+
+      // setelah logout, arahkan balik ke login
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRouter.login,
+              (route) => false,
+        );
+      }
+    }
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ============ HEADER PROFILE ============
+            // ===== HEADER PROFILE =====
             Container(
               width: 72,
               height: 72,
@@ -151,8 +162,10 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+
+            // Nama orang tua (sementara hardcode, nanti ambil dari Firestore profile user)
             Text(
-              'Ibu Sarah',
+              'Orang Tua',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -160,14 +173,18 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
+
+            // email dari Firebase Auth
             Text(
-              'a@d.a',
+              userEmail,
               style: TextStyle(
                 fontSize: 14,
                 color: subtitleColor,
               ),
             ),
+
             const SizedBox(height: 12),
+
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -189,12 +206,11 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // ============ SEKSIS: KELOLA ANAK ============
+            // ===== KELOLA ANAK =====
             sectionCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header "Kelola Anak"
                   Row(
                     children: [
                       Icon(
@@ -215,7 +231,6 @@ class ProfilePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Card Anak 1 - Sari
                   childTile(
                     name: 'Sari',
                     desc1: '8 bulan',
@@ -226,7 +241,6 @@ class ProfilePage extends StatelessWidget {
                     ),
                   ),
 
-                  // Card Anak 2 - Budi
                   childTile(
                     name: 'Budi',
                     desc1: '2 tahun 4 bulan',
@@ -274,12 +288,11 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
 
-            // ============ SEKSIS: PENGATURAN TAMPILAN ============
+            // ===== PENGATURAN TAMPILAN =====
             sectionCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Judul
                   Row(
                     children: [
                       Icon(
@@ -345,6 +358,54 @@ class ProfilePage extends StatelessWidget {
                 ],
               ),
             ),
+
+            // ===== Logout Button =====
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: sectionBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: borderColor, width: 1),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade600,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: handleLogout,
+                    icon: const Icon(Icons.logout),
+                    label: const Text(
+                      'Keluar Akun',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Anda akan keluar dari aplikasi ini',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: subtitleColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 48),
           ],
         ),
       ),

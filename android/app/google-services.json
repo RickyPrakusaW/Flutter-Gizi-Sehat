@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "199751335167",
+    "project_id": "device-streaming-edb894b1",
+    "storage_bucket": "device-streaming-edb894b1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:199751335167:android:a35c2fc7a2827698b7e0ca",
+        "android_client_info": {
+          "package_name": "com.gizisehat.gizi_sehat_mobile_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2TQgTv98BiTSa5b4lKNWbLFQKdJD9gwI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

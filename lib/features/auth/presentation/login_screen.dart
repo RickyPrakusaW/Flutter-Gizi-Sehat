@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:gizi_sehat_mobile_app/app_router.dart';
+import 'package:provider/provider.dart';
+
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
+import 'package:gizi_sehat_mobile_app/app_router.dart';
+import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,15 +26,34 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  void _onSubmit() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: panggil auth_repository.login(email, pass)
-      Navigator.pushReplacementNamed(context, AppRouter.home);
+  Future<void> _onSubmit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final auth = context.read<AuthProvider>();
+
+    final ok = await auth.login(
+      email: _emailCtrl.text.trim(),
+      password: _passCtrl.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    if (ok) {
+      // sukses login -> menuju dashboard dan hapus history login
+      Navigator.pushReplacementNamed(context, AppRouter.dashboard);
+    } else {
+      // gagal -> tampilkan snackbar error
+      final msg = auth.errorMessage ?? 'Login gagal';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -41,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen>
     final subtitleColor =
     isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
-    final sectionBg = theme.colorScheme.surface; // 1C1C1C di dark / white di light
+    final sectionBg = theme.colorScheme.surface; // ex: #1C1C1C dark / #FFFFFF light
     final borderColor =
     isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
@@ -82,6 +104,7 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
               ),
               const SizedBox(height: 12),
+
               Text(
                 'GiziSehat',
                 style: TextStyle(
@@ -91,6 +114,7 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
               ),
               const SizedBox(height: 4),
+
               Text(
                 'Asisten Gizi untuk Keluarga Sehat',
                 style: TextStyle(
@@ -102,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen>
               ),
               const SizedBox(height: 24),
 
-              // Card form (pakai style card global kita)
+              // Card form Login
               Container(
                 decoration: BoxDecoration(
                   color: sectionBg,
@@ -135,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen>
                           if (v == null || v.isEmpty) {
                             return 'Email tidak boleh kosong';
                           }
-                          // TODO: validators.email(v)
+                          // TODO: pakai validators.email(v)
                           return null;
                         },
                       ),
@@ -190,8 +214,20 @@ class _LoginScreenState extends State<LoginScreen>
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
-                          onPressed: _onSubmit,
-                          child: const Text(
+                          onPressed: auth.isLoading ? null : _onSubmit,
+                          child: auth.isLoading
+                              ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                              AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                              : const Text(
                             'Masuk',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
@@ -208,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen>
 
               const SizedBox(height: 16),
 
-              // Lupa password
+              // Lupa password (belum diimplementasi)
               TextButton(
                 onPressed: () {
                   // TODO: forgot password route
@@ -224,10 +260,13 @@ class _LoginScreenState extends State<LoginScreen>
 
               const SizedBox(height: 12),
 
-              // Daftar
+              // Ke Register
               TextButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, AppRouter.register);
+                  Navigator.pushReplacementNamed(
+                    context,
+                    AppRouter.register,
+                  );
                 },
                 child: const Text(
                   'Belum punya akun? Daftar',

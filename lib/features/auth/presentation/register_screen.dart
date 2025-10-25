@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:gizi_sehat_mobile_app/app_router.dart';
+import 'package:provider/provider.dart';
+
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
+import 'package:gizi_sehat_mobile_app/app_router.dart';
+import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -12,7 +15,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final _nameCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController(); // optional, future Firestore profile
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
@@ -29,34 +32,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _register() {
+  Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // TODO: panggil auth_repository.register(...)
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Registrasi berhasil (dummy)')),
+    final auth = context.read<AuthProvider>();
+
+    final ok = await auth.register(
+      email: _emailCtrl.text.trim(),
+      password: _passCtrl.text.trim(),
     );
 
-    Navigator.pushReplacementNamed(context, AppRouter.home);
+    if (!mounted) return;
+
+    if (ok) {
+      // 1. kasih feedback sukses
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Akun berhasil dibuat. Silakan masuk.'),
+        ),
+      );
+
+      // 2. paksa user ke halaman login, bukan dashboard
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRouter.login,
+            (route) => false,
+      );
+    } else {
+      final msg = auth.errorMessage ?? 'Registrasi gagal';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // warna teks utama (judul, isi form)
     final headingColor =
     isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
 
-    // warna teks sekunder (hint, label kecil)
     final subtitleColor =
     isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
-    // warna kartu (surface)
-    final sectionBg = theme.colorScheme.surface; // dark: #1C1C1C, light: #FFFFFF
-
-    // border kartu
+    final sectionBg = theme.colorScheme.surface;
     final borderColor =
     isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
@@ -155,8 +178,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               : Icons.visibility,
                           color: subtitleColor,
                         ),
-                        onPressed: () =>
-                            setState(() => _hidePass = !_hidePass),
+                        onPressed: () {
+                          setState(() => _hidePass = !_hidePass);
+                        },
                       ),
                     ),
                     validator: (v) {
@@ -191,8 +215,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               : Icons.visibility,
                           color: subtitleColor,
                         ),
-                        onPressed: () =>
-                            setState(() => _hideConfirm = !_hideConfirm),
+                        onPressed: () {
+                          setState(() => _hideConfirm = !_hideConfirm);
+                        },
                       ),
                     ),
                     validator: (v) {
@@ -217,8 +242,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      onPressed: _register,
-                      child: const Text(
+                      onPressed: auth.isLoading ? null : _register,
+                      child: auth.isLoading
+                          ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                          : const Text(
                         'Buat Akun',
                         style: TextStyle(
                           fontSize: 16,
