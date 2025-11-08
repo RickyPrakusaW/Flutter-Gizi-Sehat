@@ -1,126 +1,310 @@
 import 'package:flutter/material.dart';
 import 'package:gizi_sehat_mobile_app/app_router.dart';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
-import 'package:gizi_sehat_mobile_app/core/constants/app_text_styles.dart';
 
-class OnboardingScreen extends StatelessWidget {
+/// ======= Design tokens (mudah diganti) =======
+final kBg = AppColors.lightBackground;
+final kAccent = AppColors.accent;
+final kText = AppColors.lightTextPrimary;
+const kSpacing = 24.0;
+
+/// ======= Data model =======
+class OnboardingItem {
+  final String image; // path asset: assets/images/onboarding/xxx.png
+  final String title;
+  final String subtitle;
+  final String description;
+  final String? networkFallback; // opsional: kalau asset belum ada
+
+  const OnboardingItem({
+    required this.image,
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    this.networkFallback,
+  });
+}
+
+/// ======= Dummy data (ganti gambar sesuai asetmu) =======
+const onboardingItems = <OnboardingItem>[
+  OnboardingItem(
+    image: 'assets/images/onboarding/onboarding1.jpg',
+    title: 'Deteksi Gizi dari Foto Makanan',
+    subtitle: 'AI pintar untuk analisis nutrisi',
+    description:
+        'Ambil foto makanan dan dapatkan analisis kandungan gizi secara otomatis. Teknologi AI membantu menghitung kalori, protein, dan nutrisi penting lainnya.',
+    networkFallback:
+        'https://via.placeholder.com/800x560.png?text=Onboarding+1',
+  ),
+  OnboardingItem(
+    image: 'assets/images/onboarding/onboarding2.jpg',
+    title: 'Asisten Gizi dan Saran Menu',
+    subtitle: 'Konsultasi 24/7 dengan AI',
+    description:
+        'Dapatkan saran menu sehat sesuai usia anak, konsultasi gizi, dan rekomendasi makanan lokal yang terjangkau. Asisten AI siap membantu kapan saja.',
+    networkFallback:
+        'https://via.placeholder.com/800x560.png?text=Onboarding+2',
+  ),
+  OnboardingItem(
+    image: 'assets/images/onboarding/onboarding3.jpg',
+    title: 'Cegah Stunting Sejak Dini',
+    subtitle: 'Pantau tumbuh kembang anak dengan mudah',
+    description:
+        'Gunakan kurva pertumbuhan WHO untuk memantau berat dan tinggi badan anak secara berkala. Deteksi dini risiko stunting untuk masa depan yang lebih sehat.',
+    networkFallback:
+        'https://via.placeholder.com/800x560.png?text=Onboarding+3',
+  ),
+];
+
+/// ======= Screen =======
+class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  final _controller = PageController();
+  int _page = 0;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _toNext() {
+    final last = _page == onboardingItems.length - 1;
+    if (last) {
+      _goToLogin();
+    } else {
+      _controller.nextPage(
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _goToLogin() {
+    // Gunakan pushReplacementNamed agar tidak bisa kembali ke onboarding
+    Navigator.pushReplacementNamed(context, AppRouter.login);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    final titleStyle = AppTextStyles.headingBold(context);
-    final subStyle = AppTextStyles.subtitle(context);
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: kBg,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Spacer(),
-
-              // Ilustrasi / icon onboarding (nanti bisa diganti asset SVG/lottie)
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.fastfood_rounded,
-                  color: AppColors.accent,
-                  size: 48,
-                ),
+        child: Column(
+          children: [
+            // ===== Pages
+            Expanded(
+              child: PageView.builder(
+                controller: _controller,
+                itemCount: onboardingItems.length,
+                onPageChanged: (i) => setState(() => _page = i),
+                itemBuilder: (_, i) => OnboardingPage(item: onboardingItems[i]),
               ),
-              const SizedBox(height: 24),
+            ),
 
-              // Judul
-              Text(
-                'Deteksi Gizi dari Foto Makanan',
-                style: titleStyle.copyWith(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  height: 1.3,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
+            // ===== Indicators + Buttons
+            Padding(
+              padding: const EdgeInsets.fromLTRB(kSpacing, 16, kSpacing, 20),
+              child: Column(
+                children: [
+                  _Dots(count: onboardingItems.length, active: _page),
+                  const SizedBox(height: 32),
 
-              // Subjudul
-              Text(
-                'Foto makananmu → kami hitung kalori, protein, dan nutrisi penting.',
-                style: subStyle.copyWith(
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Lewati (sembunyikan di halaman terakhir)
+                      if (_page != onboardingItems.length - 1)
+                        TextButton(
+                          onPressed: _goToLogin,
+                          child: const Text(
+                            'Lewati',
+                            style: TextStyle(color: Colors.grey, fontSize: 16),
+                          ),
+                        )
+                      else
+                        const SizedBox(width: 80),
 
-              const Spacer(),
-
-              // Tombol Masuk
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.pushNamed(context, AppRouter.login);
-                  },
-                  child: const Text(
-                    'Masuk',
-                    style: AppTextStyles.buttonText,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Tombol Daftar
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                      color: AppColors.accent.withOpacity(
-                        isDark ? 0.9 : 1.0,
+                      // Lanjut / Mulai
+                      ElevatedButton(
+                        onPressed: _toNext,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kAccent,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          _page == onboardingItems.length - 1
+                              ? 'Mulai Sekarang'
+                              : 'Lanjut',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
                       ),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
+                    ],
                   ),
-                  onPressed: () {
-                    Navigator.pushNamed(context, AppRouter.register);
-                  },
-                  child: const Text(
-                    'Daftar Akun Baru',
-                    style: TextStyle(
-                      color: AppColors.accent,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                ],
               ),
-
-              const SizedBox(height: 24),
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+          ],
         ),
       ),
+    );
+  }
+}
+
+/// ======= One onboarding page widget =======
+class OnboardingPage extends StatelessWidget {
+  final OnboardingItem item;
+  const OnboardingPage({super.key, required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width; // buat responsif
+
+    return Padding(
+      padding: const EdgeInsets.all(kSpacing),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Gambar (Asset jika ada; fallback ke Network)
+          _RoundedImage(
+            width: width * 0.82,
+            height: width * 0.68,
+            assetPath: item.image,
+            networkFallback: item.networkFallback,
+          ),
+          const SizedBox(height: 36),
+
+          Text(
+            item.title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: kText,
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          Text(
+            item.subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: kAccent,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          Text(
+            item.description,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.lightTextSecondary,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// ======= Rounded image with graceful fallback =======
+class _RoundedImage extends StatelessWidget {
+  final double width;
+  final double height;
+  final String assetPath;
+  final String? networkFallback;
+
+  const _RoundedImage({
+    required this.width,
+    required this.height,
+    required this.assetPath,
+    this.networkFallback,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final imageProvider = AssetImage(assetPath);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              spreadRadius: 4,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Image(
+          image: imageProvider,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) {
+            if (networkFallback != null) {
+              return Image.network(networkFallback!, fit: BoxFit.cover);
+            }
+            return Container(
+              color: AppColors.lightBorder,
+              alignment: Alignment.center,
+              child: Text(
+                'Asset tidak ditemukan',
+                style: TextStyle(color: AppColors.lightTextSecondary),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// ======= Dot indicator (halus) =======
+class _Dots extends StatelessWidget {
+  final int count;
+  final int active;
+  const _Dots({required this.count, required this.active});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (i) {
+        final selected = i == active;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          height: 8,
+          width: selected ? 22 : 8,
+          decoration: BoxDecoration(
+            color: selected ? kAccent : AppColors.lightBorder,
+            borderRadius: BorderRadius.circular(20),
+          ),
+        );
+      }),
     );
   }
 }

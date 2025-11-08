@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'config/firebase_options.dart';
 import 'app_router.dart';
@@ -15,9 +16,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Init Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Ensure shared_preferences is ready
+  await SharedPreferences.getInstance();
 
   runApp(
     MultiProvider(
