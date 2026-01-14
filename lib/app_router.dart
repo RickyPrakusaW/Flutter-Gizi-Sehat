@@ -25,6 +25,7 @@ import 'package:flutter/material.dart';
 // 📦 Import Screen
 // ===============================
 // Tiap screen = satu dunia 🌍
+// Salah import = dunia hancur 💥
 import 'package:gizi_sehat_mobile_app/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/presentation/login_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/presentation/register_screen.dart';
@@ -42,7 +43,7 @@ class AppRouter {
   // 🏷️ Nama-nama Route
   // ===============================
   // Anggap aja ini nama jalan
-  // Harus konsisten, jangan PHP ❌
+  // Konsisten = hidup damai 🧘
   static const String authGate = '/auth-gate'; // 🔐 Gerbang utama
   static const String onboarding = '/onboarding'; // 👋 Sambutan pertama
   static const String login = '/login'; // 🔑 Masuk pakai iman & password
@@ -53,19 +54,26 @@ class AppRouter {
   // 🧠 onGenerateRoute
   // ===================================================
   // Otak dari sistem navigasi 🧠
-  // Flutter tanya:
-  // "Eh, mau ke mana?" 🤔
+  // Flutter: "Mau ke mana bos?" 🤔
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
 
-    // 👀 Debug mental:
-    // print('Navigasi ke: ${settings.name}');
+    // 🕵️‍♂️ DEBUG ROUTING
+    print("");
+    print("🧭 ================================");
+    print("🧭 Navigasi diminta ke route:");
+    print("🧭 👉 ${settings.name}");
+    print("🧭 ================================");
+    print("");
+
     switch (settings.name) {
 
     // ===============================
     // 🔐 AUTH GATE
     // ===============================
-    // Cek login dulu, jangan asal masuk 😤
+    // Satpam aplikasi 🚓
+    // Login dulu baru lewat
       case authGate:
+        print("🔐 Masuk AuthGate → cek login user...");
         return MaterialPageRoute(
           builder: (_) => const AuthGateScreen(),
           settings: settings,
@@ -74,9 +82,9 @@ class AppRouter {
     // ===============================
     // 👋 ONBOARDING
     // ===============================
-    // Halo user baru ✨
-    // Janji hidup sehat (tapi besok) 😂
+    // User baru, masih polos ✨
       case onboarding:
+        print("👋 Ke Onboarding → user baru nih!");
         return MaterialPageRoute(
           builder: (_) => const OnboardingScreen(),
           settings: settings,
@@ -85,9 +93,9 @@ class AppRouter {
     // ===============================
     // 🔑 LOGIN
     // ===============================
-    // Masuk dengan username & password
-    // Salah dikit? Ulang dari awal 😈
+    // Tempat mengetik password sambil deg-degan 😰
       case login:
+        print("🔑 Ke Login → semoga password benar 🤞");
         return MaterialPageRoute(
           builder: (_) => const LoginScreen(),
           settings: settings,
@@ -96,8 +104,10 @@ class AppRouter {
     // ===============================
     // 📝 REGISTER
     // ===============================
-    // Daftar dulu, gratis kok (bug-nya mahal)
+    // Daftar akun, gratis*
+    // *dibayar dengan bug 🐛
       case register:
+        print("📝 Ke Register → user baru lahir 🎉");
         return MaterialPageRoute(
           builder: (_) => const RegisterScreen(),
           settings: settings,
@@ -106,9 +116,9 @@ class AppRouter {
     // ===============================
     // 🏠 DASHBOARD
     // ===============================
-    // Selamat datang di rumah 🥗
-    // Di sinilah user betah
+    // Rumah utama, tempat healing 🥗
       case dashboard:
+        print("🏠 Ke Dashboard → selamat datang di rumah!");
         return MaterialPageRoute(
           builder: (_) => const HomeScreen(),
           settings: settings,
@@ -118,8 +128,10 @@ class AppRouter {
     // ❓ DEFAULT ROUTE
     // ===============================
     // Kalau route nggak dikenal:
-    // "Yaudah balik ke onboarding aja" 😅
+    // "Balik ke onboarding aja ya 😅"
       default:
+        print("❓ Route tidak dikenal!");
+        print("↩️ Dialihkan ke Onboarding...");
         return MaterialPageRoute(
           builder: (_) => const OnboardingScreen(),
           settings: settings,
@@ -131,9 +143,18 @@ class AppRouter {
 // =======================================================
 // 🎉 END OF ROUTER
 // =======================================================
-// Tips hidup:
-// - Jangan hardcode string route di mana-mana ❌
-// - Pakai AppRouter biar hidup tenang 🧘
-// - Kalau error, baca stacktrace dulu 😇
 //
-// Happy navigating! 🚦🚀
+// ASCII MOTIVATION:
+//
+//   (⌐■_■)
+//    <) )╯  DEBUG
+//    / \
+//
+// Tips hidup sebagai Flutter Dev:
+// - Jangan hardcode route ❌
+// - Selalu pakai AppRouter ✅
+// - print() itu teman, bukan musuh 🫂
+// - Tapi di production… hapus 😈
+//
+// print("Happy navigating! 🚦🚀");
+// =======================================================
