@@ -1,5 +1,21 @@
 import 'package:flutter/material.dart';
 
+// =======================================================
+// 🔐 LOGIN & REGISTER SCREEN
+// =======================================================
+// Ini halaman PENTING.
+// Kalau user gagal login di sini → app kamu MATI.
+//
+// ASCII FLOW:
+//
+//   👤 User
+//     |
+//   🔐 Login / Register
+//     |
+//   🏠 Home
+//
+// =======================================================
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -12,6 +28,8 @@ class _LoginScreenState extends State<LoginScreen>
   static const kAccent = Color(0xFF5DB075);
 
   late final TabController _tab;
+
+  // 👁️ Toggle visibility password
   bool _obscureLogin = true;
   bool _obscureReg1 = true;
   bool _obscureReg2 = true;
@@ -19,21 +37,41 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void initState() {
     super.initState();
+    print("");
+    print("🔐 ================================");
+    print("🔐 LoginScreen initState()");
+    print("🔐 ================================");
+    print("");
+
     _tab = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
+    print("");
+    print("🧹 ================================");
+    print("🧹 LoginScreen dispose()");
+    print("🧹 TabController dibuang");
+    print("🧹 ================================");
+    print("");
+
     _tab.dispose();
     super.dispose();
   }
 
+  // =======================================================
+  // 🧱 BORDER INPUT – konsisten & reusable
+  // =======================================================
   OutlineInputBorder get _border => OutlineInputBorder(
     borderRadius: BorderRadius.circular(12),
     borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
   );
 
+  // =======================================================
+  // ➖ Divider dengan teks di tengah
+  // =======================================================
   Widget _dividerWithText(String text) {
+    print("➖ Render divider: $text");
     return Row(
       children: [
         const Expanded(child: Divider(color: Color(0xFFE5E5E5))),
@@ -46,20 +84,29 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  // =======================================================
+  // 🌐 Tombol login sosial (dummy)
+  // =======================================================
   Widget _socialButton(IconData icon, String label) {
+    print("🌐 Render social button: $label");
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
-        onPressed: () {},
+        onPressed: () {
+          print("🚧 Social login '$label' belum diimplementasi");
+        },
         icon: Icon(icon, size: 20, color: Colors.black87),
         label: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(label,
-              style: const TextStyle(fontSize: 16, color: Colors.black87)),
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 16, color: Colors.black87),
+          ),
         ),
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Color(0xFFE6E6E6)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           backgroundColor: Colors.white,
         ),
       ),
@@ -68,6 +115,8 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    print("🖥️ Build LoginScreen");
+
     const bg = Color(0xFFFCFBF4);
 
     return Scaffold(
@@ -77,18 +126,27 @@ class _LoginScreenState extends State<LoginScreen>
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
           child: Column(
             children: [
+              // =======================================================
+              // 🧠 HEADER BRAND
+              // =======================================================
               const SizedBox(height: 8),
               const Icon(Icons.favorite, color: kAccent, size: 56),
               const SizedBox(height: 8),
-              const Text('GiziSehat',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+              const Text(
+                'GiziSehat',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+              ),
               const SizedBox(height: 6),
-              const Text('Asisten Gizi untuk Keluarga Sehat',
-                  style: TextStyle(color: Colors.grey)),
+              const Text(
+                'Asisten Gizi untuk Keluarga Sehat',
+                style: TextStyle(color: Colors.grey),
+              ),
 
               const SizedBox(height: 18),
 
-              // Kartu + Tab
+              // =======================================================
+              // 📦 CARD LOGIN / REGISTER
+              // =======================================================
               DecoratedBox(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -105,7 +163,9 @@ class _LoginScreenState extends State<LoginScreen>
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
                   child: Column(
                     children: [
-                      // Segmented Tab
+                      // ===============================
+                      // 🧭 TAB LOGIN / REGISTER
+                      // ===============================
                       Container(
                         decoration: BoxDecoration(
                           color: const Color(0xFFF2F4F3),
@@ -119,7 +179,8 @@ class _LoginScreenState extends State<LoginScreen>
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.06),
+                                color:
+                                Colors.black.withValues(alpha: 0.06),
                                 blurRadius: 10,
                               ),
                             ],
@@ -135,55 +196,59 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                       const SizedBox(height: 16),
 
-                      // Konten kedua tab
+                      // ===================================================
+                      // 📄 TAB CONTENT
+                      // ===================================================
                       SizedBox(
-                        height: 520, // biar stabil, tidak “lompat”
+                        height: 520, // mencegah UI lompat
                         child: TabBarView(
                           controller: _tab,
                           children: [
-                            // =========== MASUK ===========
+                            // ===============================
+                            // 🔐 MASUK
+                            // ===============================
                             Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
                               children: [
-                                const Text('Masuk ke Akun Anda',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700)),
+                                const Text(
+                                  'Masuk ke Akun Anda',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700),
+                                ),
                                 const SizedBox(height: 6),
                                 const Text(
-                                  'Selamat datang kembali! Masukkan email dan password Anda.',
+                                  'Selamat datang kembali!',
                                   style: TextStyle(color: Colors.grey),
                                 ),
                                 const SizedBox(height: 16),
 
-                                // Email
                                 TextField(
-                                  keyboardType: TextInputType.emailAddress,
                                   decoration: InputDecoration(
                                     labelText: 'Email',
-                                    hintText: 'nama@email.com',
-                                    prefixIcon:
-                                    const Icon(Icons.email_outlined),
+                                    prefixIcon: const Icon(
+                                        Icons.email_outlined),
                                     border: _border,
                                     enabledBorder: _border,
                                     focusedBorder: _border,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 14, horizontal: 12),
                                   ),
                                 ),
                                 const SizedBox(height: 14),
 
-                                // Password
                                 TextField(
                                   obscureText: _obscureLogin,
                                   decoration: InputDecoration(
                                     labelText: 'Password',
-                                    hintText: 'Password Anda',
-                                    prefixIcon:
-                                    const Icon(Icons.lock_outline),
+                                    prefixIcon: const Icon(
+                                        Icons.lock_outline),
                                     suffixIcon: IconButton(
-                                      onPressed: () => setState(() =>
-                                      _obscureLogin = !_obscureLogin),
+                                      onPressed: () {
+                                        setState(() =>
+                                        _obscureLogin =
+                                        !_obscureLogin);
+                                        print("👁️ Toggle password login");
+                                      },
                                       icon: Icon(_obscureLogin
                                           ? Icons.visibility_outlined
                                           : Icons.visibility_off_outlined),
@@ -191,8 +256,6 @@ class _LoginScreenState extends State<LoginScreen>
                                     border: _border,
                                     enabledBorder: _border,
                                     focusedBorder: _border,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 14, horizontal: 12),
                                   ),
                                 ),
                                 const SizedBox(height: 18),
@@ -201,87 +264,73 @@ class _LoginScreenState extends State<LoginScreen>
                                   width: double.infinity,
                                   child: ElevatedButton(
                                     onPressed: () {
-                                      Navigator.pushReplacementNamed(context, '/home');
+                                      print("✅ Login dummy → /home");
+                                      Navigator.pushReplacementNamed(
+                                          context, '/home');
                                     },
                                     child: const Text('Masuk'),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Center(
-                                  child: TextButton(
-                                    onPressed: () {},
-                                    child: const Text('Lupa password?',
-                                        style: TextStyle(color: kAccent)),
                                   ),
                                 ),
                               ],
                             ),
 
-                            // =========== DAFTAR ===========
+                            // ===============================
+                            // 📝 DAFTAR
+                            // ===============================
                             Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
                               children: [
-                                const Text('Buat Akun Baru',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700)),
+                                const Text(
+                                  'Buat Akun Baru',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700),
+                                ),
                                 const SizedBox(height: 6),
                                 const Text(
-                                  'Bergabunglah dengan GiziSehat untuk memantau tumbuh kembang anak.',
+                                  'Daftar untuk mulai perjalanan sehat.',
                                   style: TextStyle(color: Colors.grey),
                                 ),
                                 const SizedBox(height: 16),
 
-                                const Text('Nama Lengkap',
-                                    style:
-                                    TextStyle(fontWeight: FontWeight.w600)),
-                                const SizedBox(height: 6),
                                 TextField(
                                   decoration: InputDecoration(
-                                    hintText: 'Nama lengkap Anda',
-                                    prefixIcon:
-                                    const Icon(Icons.person_outline),
+                                    hintText: 'Nama lengkap',
+                                    prefixIcon: const Icon(
+                                        Icons.person_outline),
                                     border: _border,
                                     enabledBorder: _border,
                                     focusedBorder: _border,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 14, horizontal: 12),
                                   ),
                                 ),
                                 const SizedBox(height: 14),
 
-                                const Text('Email',
-                                    style:
-                                    TextStyle(fontWeight: FontWeight.w600)),
-                                const SizedBox(height: 6),
                                 TextField(
-                                  keyboardType: TextInputType.emailAddress,
                                   decoration: InputDecoration(
-                                    hintText: 'nama@email.com',
-                                    prefixIcon:
-                                    const Icon(Icons.email_outlined),
+                                    hintText: 'Email',
+                                    prefixIcon: const Icon(
+                                        Icons.email_outlined),
                                     border: _border,
                                     enabledBorder: _border,
                                     focusedBorder: _border,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 14, horizontal: 12),
                                   ),
                                 ),
                                 const SizedBox(height: 14),
 
-                                const Text('Password',
-                                    style:
-                                    TextStyle(fontWeight: FontWeight.w600)),
-                                const SizedBox(height: 6),
                                 TextField(
                                   obscureText: _obscureReg1,
                                   decoration: InputDecoration(
-                                    hintText: 'Minimal 8 karakter',
-                                    prefixIcon:
-                                    const Icon(Icons.lock_outline),
+                                    hintText: 'Password',
+                                    prefixIcon: const Icon(
+                                        Icons.lock_outline),
                                     suffixIcon: IconButton(
-                                      onPressed: () => setState(
-                                              () => _obscureReg1 = !_obscureReg1),
+                                      onPressed: () {
+                                        setState(() =>
+                                        _obscureReg1 =
+                                        !_obscureReg1);
+                                        print("👁️ Toggle password daftar");
+                                      },
                                       icon: Icon(_obscureReg1
                                           ? Icons.visibility_outlined
                                           : Icons.visibility_off_outlined),
@@ -289,34 +338,6 @@ class _LoginScreenState extends State<LoginScreen>
                                     border: _border,
                                     enabledBorder: _border,
                                     focusedBorder: _border,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 14, horizontal: 12),
-                                  ),
-                                ),
-                                const SizedBox(height: 14),
-
-                                const Text('Konfirmasi Password',
-                                    style:
-                                    TextStyle(fontWeight: FontWeight.w600)),
-                                const SizedBox(height: 6),
-                                TextField(
-                                  obscureText: _obscureReg2,
-                                  decoration: InputDecoration(
-                                    hintText: 'Ulangi password',
-                                    prefixIcon:
-                                    const Icon(Icons.lock_outline),
-                                    suffixIcon: IconButton(
-                                      onPressed: () => setState(
-                                              () => _obscureReg2 = !_obscureReg2),
-                                      icon: Icon(_obscureReg2
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined),
-                                    ),
-                                    border: _border,
-                                    enabledBorder: _border,
-                                    focusedBorder: _border,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 14, horizontal: 12),
                                   ),
                                 ),
                                 const SizedBox(height: 18),
@@ -324,7 +345,10 @@ class _LoginScreenState extends State<LoginScreen>
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      print(
+                                          "📝 Register dummy ditekan");
+                                    },
                                     child: const Text('Daftar'),
                                   ),
                                 ),
@@ -344,30 +368,6 @@ class _LoginScreenState extends State<LoginScreen>
               _socialButton(Icons.g_mobiledata, 'Google'),
               const SizedBox(height: 10),
               _socialButton(Icons.apple, 'Apple'),
-
-              const SizedBox(height: 16),
-              // jangan pakai const agar bisa refer ke kAccent
-              Text.rich(
-                TextSpan(
-                  text: 'Dengan mendaftar, Anda menyetujui ',
-                  style: const TextStyle(color: Colors.grey),
-                  children: [
-                    const TextSpan(text: ' '),
-                    TextSpan(
-                      text: 'Syarat & Ketentuan',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, color: kAccent),
-                    ),
-                    const TextSpan(text: ' dan '),
-                    TextSpan(
-                      text: 'Kebijakan Privasi',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, color: kAccent),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-              ),
             ],
           ),
         ),
@@ -375,3 +375,16 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 }
+
+/*
+===========================================================
+ASCII FOOTER:
+
+   🔐  (•_•)
+      <)   )╯
+       /   \
+
+Login screen siap tempur.
+Tinggal sambungkan ke AuthProvider / Firebase.
+===========================================================
+*/
