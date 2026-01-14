@@ -1,0 +1,454 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_strings.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/theme_provider.dart';
+import '../../../presentation/widgets/status_badge.dart';
+
+/// Halaman profil pengguna dan pengaturan
+class ProfilePage extends ConsumerWidget {
+  const ProfilePage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final headingColor = isDark
+        ? AppColors.darkTextPrimary
+        : AppColors.lightTextPrimary;
+
+    final subtitleColor = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.lightTextSecondary;
+
+    final sectionBg = theme.colorScheme.surface;
+    final borderColor = isDark
+        ? AppColors.darkBorder
+        : AppColors.lightBorder;
+
+    final innerCardBg = isDark
+        ? const Color(0xFF262626)
+        : const Color(0xFFF9F9F9);
+
+    final avatarBg = AppColors.accent.withOpacity(0.15);
+
+    final themeMode = ref.watch(themeModeProvider);
+    final darkModeOn = themeMode == ThemeMode.dark;
+
+    final authStateAsync = ref.watch(authStateStreamProvider);
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Header profile avatar
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: avatarBg,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.person,
+                color: AppColors.accent,
+                size: 36,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            Text(
+              'Orang Tua',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: headingColor,
+              ),
+            ),
+            const SizedBox(height: 4),
+
+            authStateAsync.when(
+              data: (user) => Text(
+                user?.email ?? '-',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: subtitleColor,
+                ),
+              ),
+              loading: () => const CircularProgressIndicator(),
+              error: (_, __) => Text(
+                'Error loading user',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: subtitleColor,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.edit_outlined,
+                  size: 16,
+                  color: headingColor,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Edit Profil',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: headingColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Kelola anak section
+            _SectionCard(
+              backgroundColor: sectionBg,
+              borderColor: borderColor,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.tag_faces_outlined,
+                        color: headingColor,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Kelola Anak',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: headingColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _ChildTile(
+                    innerCardBg: innerCardBg,
+                    avatarBg: avatarBg,
+                    headingColor: headingColor,
+                    subtitleColor: subtitleColor,
+                    name: 'Sari',
+                    desc1: '8 bulan',
+                    desc2: 'Perempuan',
+                    badge: const StatusBadge(
+                      label: 'Normal',
+                      isWarning: false,
+                    ),
+                  ),
+                  _ChildTile(
+                    innerCardBg: innerCardBg,
+                    avatarBg: avatarBg,
+                    headingColor: headingColor,
+                    subtitleColor: subtitleColor,
+                    name: 'Budi',
+                    desc1: '2 tahun 4 bulan',
+                    desc2: 'Laki-laki',
+                    badge: const StatusBadge(
+                      label: 'Berisiko',
+                      isWarning: true,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: borderColor,
+                        width: 1,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: 16,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.add,
+                          size: 18,
+                          color: headingColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Tambah Anak',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: headingColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Pengaturan tampilan section
+            _SectionCard(
+              backgroundColor: sectionBg,
+              borderColor: borderColor,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.settings_outlined,
+                        color: headingColor,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Pengaturan Tampilan',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: headingColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        darkModeOn
+                            ? Icons.dark_mode_outlined
+                            : Icons.wb_sunny_outlined,
+                        color: headingColor,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Mode Gelap',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: headingColor,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              darkModeOn ? 'Aktif' : 'Nonaktif',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: subtitleColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: darkModeOn,
+                        activeColor: AppColors.accent,
+                        onChanged: (val) {
+                          ref
+                              .read(themeModeProvider.notifier)
+                              .setThemeMode(val ? ThemeMode.dark : ThemeMode.light);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Logout button
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: sectionBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: borderColor, width: 1),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade600,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: () async {
+                      await ref.read(authNotifierProvider.notifier).logout();
+                      if (context.mounted) {
+                        context.goNamed('login');
+                      }
+                    },
+                    icon: const Icon(Icons.logout),
+                    label: const Text(
+                      'Keluar Akun',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Anda akan keluar dari aplikasi ini',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: subtitleColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 48),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  final Color backgroundColor;
+  final Color borderColor;
+  final Widget child;
+
+  const _SectionCard({
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor, width: 1),
+      ),
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 24),
+      child: child,
+    );
+  }
+}
+
+class _ChildTile extends StatelessWidget {
+  final Color innerCardBg;
+  final Color avatarBg;
+  final Color headingColor;
+  final Color subtitleColor;
+  final String name;
+  final String desc1;
+  final String desc2;
+  final Widget badge;
+
+  const _ChildTile({
+    required this.innerCardBg,
+    required this.avatarBg,
+    required this.headingColor,
+    required this.subtitleColor,
+    required this.name,
+    required this.desc1,
+    required this.desc2,
+    required this.badge,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: innerCardBg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: avatarBg,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.health_and_safety_outlined,
+              color: AppColors.accent,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        name,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: headingColor,
+                        ),
+                      ),
+                    ),
+                    badge,
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.edit_outlined,
+                      size: 16,
+                      color: headingColor,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$desc1 • $desc2',
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.4,
+                    color: subtitleColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
