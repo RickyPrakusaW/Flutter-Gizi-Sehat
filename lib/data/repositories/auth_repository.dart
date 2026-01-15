@@ -17,5 +17,6 @@ abstract class AuthRepository {
   Stream<AuthUserData?> watchAuthState();
   Future<void> login(String email, String password);
   Future<void> register(String email, String password);
+  Future<void> signInWithGoogle(); // Method baru untuk Google Sign-In
   Future<void> logout();
 }

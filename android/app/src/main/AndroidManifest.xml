@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permission untuk internet (diperlukan untuk Google Sign-In) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    
     <application
         android:label="gizi_sehat_mobile_app"
         android:name="${applicationName}"

@@ -86,6 +86,28 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Login user menggunakan Google Sign-In
+  /// Method ini akan:
+  /// 1. Membuka dialog Google Sign-In
+  /// 2. User memilih akun Google
+  /// 3. Otomatis sign in ke Firebase
+  Future<bool> signInWithGoogle() async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _repo.signInWithGoogle();
+      debugPrint('Google Sign-In success');
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      debugPrint('Google Sign-In error: $e');
+      _setLoading(false);
+      _setError(_readableError(e));
+      return false;
+    }
+  }
+
   /// Logout user dari Firebase Auth
   Future<void> logout() async {
     await _repo.logout();
@@ -126,6 +148,13 @@ class AuthProvider extends ChangeNotifier {
     }
     if (raw.contains('wrong-password')) {
       return 'Password salah';
+    }
+    // Error untuk Google Sign-In
+    if (raw.contains('dibatalkan') || raw.contains('cancelled')) {
+      return 'Login dengan Google dibatalkan';
+    }
+    if (raw.contains('network_error') || raw.contains('network')) {
+      return 'Koneksi internet bermasalah. Periksa koneksi Anda.';
     }
 
     // Fallback

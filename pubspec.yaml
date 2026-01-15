@@ -19,6 +19,7 @@ dependencies:
   firebase_auth: ^5.2.0
   cloud_firestore: ^5.4.0
   firebase_storage: ^12.2.0
+  google_sign_in: ^6.2.1  # untuk Google Sign-In
 
   # ---- UI tambahan ----
   intl: ^0.19.0
@@ -40,3 +41,5 @@ flutter:
 
   assets:
     - assets/images/onboarding/
+    - assets/images/logo_google.jpg
+    - assets/images/Berkas_Google__G__logo.svg

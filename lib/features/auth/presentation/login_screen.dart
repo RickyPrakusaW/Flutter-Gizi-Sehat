@@ -59,6 +59,34 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  /// Handler untuk login dengan Google
+  /// Method ini akan:
+  /// 1. Memanggil AuthProvider.signInWithGoogle()
+  /// 2. Menampilkan loading indicator
+  /// 3. Jika berhasil, navigasi ke dashboard
+  /// 4. Jika gagal, tampilkan error message
+  Future<void> _onGoogleSignIn() async {
+    final auth = context.read<AuthProvider>();
+
+    final ok = await auth.signInWithGoogle();
+
+    if (!mounted) return;
+
+    if (ok) {
+      // Login berhasil, navigasi ke dashboard
+      Navigator.pushReplacementNamed(context, AppRouter.dashboard);
+    } else {
+      // Login gagal, tampilkan error message
+      final msg = auth.errorMessage ?? 'Login dengan Google gagal. Silakan coba lagi.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
   /// Validasi format email
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
@@ -211,6 +239,77 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Divider dengan "atau"
+                Row(
+                  children: [
+                    Expanded(
+                      child: Divider(
+                        color: Colors.grey.shade300,
+                        thickness: 1,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'atau',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Divider(
+                        color: Colors.grey.shade300,
+                        thickness: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                // Google Sign-In button
+                SizedBox(
+                  height: 50,
+                  child: OutlinedButton(
+                    onPressed: auth.isLoading ? null : _onGoogleSignIn,
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Google logo dari asset
+                        Image.asset(
+                          'assets/images/logo_google.jpg',
+                          height: 24,
+                          width: 24,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            // Fallback ke icon jika asset tidak ditemukan
+                            return const Icon(
+                              Icons.g_mobiledata,
+                              size: 24,
+                              color: Colors.grey,
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Masuk dengan Google',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
