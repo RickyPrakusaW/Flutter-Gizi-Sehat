@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
-import 'package:gizi_sehat_mobile_app/core/services/gemini_service.dart';
 import 'package:intl/intl.dart';
 
 /// Model untuk pesan chat
@@ -44,7 +43,6 @@ class _AssistantPageState extends State<AssistantPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
-  final GeminiService _geminiService = GeminiService();
   bool _isLoading = false;
 
   /// List pertanyaan cepat yang tersedia
@@ -102,8 +100,7 @@ class _AssistantPageState extends State<AssistantPage> {
     _scrollToBottom();
   }
 
-  /// Mengirim pesan user dan mendapatkan response dari AI
-  /// Menggunakan Google Gemini AI untuk generate response
+  /// Mengirim pesan user dan mendapatkan response
   Future<void> _sendMessage(String message) async {
     if (message.trim().isEmpty || _isLoading) return;
 
@@ -122,39 +119,26 @@ class _AssistantPageState extends State<AssistantPage> {
     _messageController.clear();
     _scrollToBottom();
 
-    try {
-      // Kirim ke Gemini AI dan dapatkan response
-      final aiResponse = await _geminiService.sendMessage(message);
+    // Simulasi delay untuk memberikan efek loading
+    await Future.delayed(const Duration(seconds: 1));
 
-      if (mounted) {
-        setState(() {
-          _messages.add(
-            ChatMessage(
-              id: DateTime.now().millisecondsSinceEpoch.toString(),
-              content: aiResponse,
-              isFromUser: false,
-              timestamp: DateTime.now(),
-            ),
-          );
-          _isLoading = false;
-        });
-        _scrollToBottom();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _messages.add(
-            ChatMessage(
-              id: DateTime.now().millisecondsSinceEpoch.toString(),
-              content: 'Maaf, terjadi kesalahan saat memproses pesan Anda. Silakan coba lagi.',
-              isFromUser: false,
-              timestamp: DateTime.now(),
-            ),
-          );
-          _isLoading = false;
-        });
-        _scrollToBottom();
-      }
+    // Response default
+    final aiResponse = 'Maaf, fitur AI Asisten Gizi saat ini sedang tidak tersedia. '
+        'Silakan hubungi dokter atau ahli gizi untuk konsultasi lebih lanjut.';
+
+    if (mounted) {
+      setState(() {
+        _messages.add(
+          ChatMessage(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            content: aiResponse,
+            isFromUser: false,
+            timestamp: DateTime.now(),
+          ),
+        );
+        _isLoading = false;
+      });
+      _scrollToBottom();
     }
   }
 
