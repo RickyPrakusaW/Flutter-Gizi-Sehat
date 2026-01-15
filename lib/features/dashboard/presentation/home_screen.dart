@@ -5,6 +5,8 @@ import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/nutr
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/assistant_page.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/profile_page.dart';
 
+/// Screen utama dengan bottom navigation bar
+/// Mengatur 5 halaman utama: Beranda, Tumbuh, Menu, Asisten, Profil
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -13,14 +15,22 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  /// Index tab yang sedang aktif (0=Beranda, 1=Tumbuh, 2=Menu, 3=Asisten, 4=Profil)
   int _currentIndex = 0;
 
-  final _pages = const [
-    DashboardPage(),  // Beranda
-    GrowthPage(),     // Tumbuh
-    NutritionPage(),  // Menu
-    AssistantPage(),  // Asisten
-    ProfilePage(),    // Profil
+  /// List semua halaman yang ditampilkan berdasarkan tab
+  List<Widget> get _pages => [
+    DashboardPage(
+      onNavigateToTab: (index) {
+        setState(() {
+          _currentIndex = index;
+        });
+      },
+    ),
+    const GrowthPage(),
+    const NutritionPage(),
+    const AssistantPage(),
+    const ProfilePage(),
   ];
 
   @override
@@ -28,12 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      // ❗JANGAN hardcode AppColors.bg lagi
       backgroundColor: theme.scaffoldBackgroundColor,
-
       body: _pages[_currentIndex],
-
-      // Bottom nav dibungkus container biar ada border top tipis.
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: theme.bottomNavigationBarTheme.backgroundColor ??
@@ -51,10 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
           type: BottomNavigationBarType.fixed,
           currentIndex: _currentIndex,
           onTap: (i) => setState(() => _currentIndex = i),
-
-          // ❗BIARKAN theme yang ngatur warna selected/unselected,
-          // jadi jangan override selectedItemColor/unselectedItemColor lagi.
-
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
@@ -69,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Menu',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.local_hospital_outlined),
+              icon: Icon(Icons.smart_toy_outlined),
               label: 'Asisten',
             ),
             BottomNavigationBarItem(

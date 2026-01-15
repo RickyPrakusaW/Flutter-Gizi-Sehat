@@ -57,6 +57,3 @@ flutter:
 
   assets:
     - assets/images/onboarding/
-    - assets/images/icons/
-    - assets/images/illustrations/
-    - assets/lottie/

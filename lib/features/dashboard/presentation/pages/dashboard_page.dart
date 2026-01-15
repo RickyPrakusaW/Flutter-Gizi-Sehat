@@ -1,110 +1,408 @@
 import 'package:flutter/material.dart';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
 
+/// Halaman utama dashboard beranda
+/// Menampilkan header, card chat asisten, list anak-anak, dan aksi cepat
 class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
+  /// Callback untuk navigasi ke tab tertentu (0=Beranda, 1=Tumbuh, 2=Menu, 3=Asisten, 4=Profil)
+  final Function(int)? onNavigateToTab;
+  
+  const DashboardPage({super.key, this.onNavigateToTab});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    final headingColor = isDark
-        ? AppColors.darkTextPrimary
-        : AppColors.lightTextPrimary;
-
-    final subtitleColor = isDark
-        ? AppColors.darkTextSecondary
-        : AppColors.lightTextSecondary;
-
-    final sectionBg = theme.colorScheme.surface; // dari theme (1C1C1C / white)
-    final borderColor = isDark
-        ? AppColors.darkBorder
-        : AppColors.lightBorder;
-
-    Widget sectionCard({
-      required IconData icon,
-      required String text,
-    }) {
-      return Container(
-        decoration: BoxDecoration(
-          color: sectionBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor, width: 1),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              icon,
-              color: AppColors.accent,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.4,
-                  color: isDark
-                      ? AppColors.darkTextPrimary
-                      : AppColors.lightTextPrimary,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
 
     return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(24),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header dengan judul aplikasi
+            _buildHeader(theme),
+            // Card promosi chat dengan asisten gizi
+            _buildChatAssistantCard(context, theme),
+            // Section list anak-anak yang terdaftar
+            _buildMyChildrenSection(context, theme),
+            // Section aksi cepat (4 card shortcut)
+            _buildQuickActionsSection(context, theme),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Membangun header dengan judul "GiziSehat" dan subtitle
+  Widget _buildHeader(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+      child: Column(
         children: [
-          // HEADER
           Text(
-            'Halo, Ibu',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: headingColor,
+            'GiziSehat',
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            'Pantau pertumbuhan anak dan cek gizi harian di sini.',
-            style: TextStyle(
-              fontSize: 14,
-              color: subtitleColor,
-              height: 1.4,
+            'Asisten Gizi Keluarga',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: Colors.grey.shade600,
             ),
           ),
-          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
 
-          // CARD 1 - AI Assistant
-          sectionCard(
-            icon: Icons.health_and_safety,
-            text:
-            'Tanya AI GiziSehat sekarang.\n“Kebutuhan gizi anak usia 2 tahun apa aja?”',
+  /// Membangun card promosi chat dengan asisten gizi (warna biru)
+  /// Ketika diklik, navigasi ke tab Asisten (index 3)
+  Widget _buildChatAssistantCard(BuildContext context, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: InkWell(
+        onTap: () {
+          onNavigateToTab?.call(3);
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE3F2FD),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2196F3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.smart_toy_outlined,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Chat dengan Asisten Gizi',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1976D2),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Konsultasi seputar nutrisi & tumbuh kembang',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.blue.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios,
+                color: Color(0xFF1976D2),
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Membangun section untuk menampilkan list anak-anak yang terdaftar
+  /// Termasuk card untuk setiap anak dan tombol tambah anak
+  Widget _buildMyChildrenSection(BuildContext context, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Anak-anak Saya',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 16),
-
-          // CARD 2 - Growth summary
-          sectionCard(
-            icon: Icons.show_chart,
-            text:
-            'Pertumbuhan anak terakhir: BB 10.2 kg, TB 82 cm.\nStatus: Normal.',
+          _buildChildCard(
+            theme: theme,
+            name: 'Sari',
+            age: '8 bulan',
+            status: 'Normal',
+            statusColor: AppColors.accent,
+            checkDate: 'Cek: 3 hari lagi',
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          _buildChildCard(
+            theme: theme,
+            name: 'Budi',
+            age: '2 tahun 4 bulan',
+            status: 'Berisiko',
+            statusColor: Colors.orange,
+            checkDate: 'Cek: Minggu depan',
+          ),
+          const SizedBox(height: 12),
+          _buildAddChildButton(context, theme),
+        ],
+      ),
+    );
+  }
 
-          // CARD 3 - Tips Gizi
-          sectionCard(
-            icon: Icons.restaurant_menu,
-            text:
-            'Tips hari ini:\nMPASI tinggi protein hewani bantu cegah stunting.',
+  /// Membangun card untuk menampilkan informasi satu anak
+  /// Menampilkan: icon, nama, umur, badge status (Normal/Berisiko), dan jadwal cek
+  Widget _buildChildCard({
+    required ThemeData theme,
+    required String name,
+    required String age,
+    required String status,
+    required Color statusColor,
+    required String checkDate,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.brightness == Brightness.dark
+              ? AppColors.darkBorder
+              : AppColors.lightBorder,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.accent.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.child_care,
+              color: AppColors.accent,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  age,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                checkDate,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  /// Membangun tombol untuk menambahkan anak baru
+  /// TODO: Implementasi navigasi ke halaman tambah anak
+  Widget _buildAddChildButton(BuildContext context, ThemeData theme) {
+    return InkWell(
+      onTap: () {
+        // TODO: Navigate to add child screen
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.brightness == Brightness.dark
+                ? AppColors.darkBorder
+                : AppColors.lightBorder,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add_circle_outline,
+              color: Colors.grey.shade400,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Tambah Anak',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Membangun section aksi cepat dengan 4 card dalam grid 2x2:
+  /// - Cek Pertumbuhan, Skrining Risiko, Jadwal Posyandu, Chat Asisten
+  Widget _buildQuickActionsSection(BuildContext context, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Aksi Cepat',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickActionCard(
+                  context: context,
+                  theme: theme,
+                  icon: Icons.show_chart,
+                  label: 'Cek Pertumbuhan',
+                  iconColor: AppColors.accent,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildQuickActionCard(
+                  context: context,
+                  theme: theme,
+                  icon: Icons.warning_amber_rounded,
+                  label: 'Skrining Risiko',
+                  iconColor: Colors.orange,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickActionCard(
+                  context: context,
+                  theme: theme,
+                  icon: Icons.calendar_today,
+                  label: 'Jadwal Posyandu',
+                  iconColor: AppColors.accent,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildQuickActionCard(
+                  context: context,
+                  theme: theme,
+                  icon: Icons.smart_toy_outlined,
+                  label: 'Chat Asisten',
+                  iconColor: const Color(0xFF2196F3),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Membangun card untuk aksi cepat individual
+  /// Masing-masing card memiliki icon dan label, dapat diklik untuk navigasi
+  Widget _buildQuickActionCard({
+    required BuildContext context,
+    required ThemeData theme,
+    required IconData icon,
+    required String label,
+    required Color iconColor,
+  }) {
+    return InkWell(
+      onTap: () {
+        if (label == 'Chat Asisten') {
+          onNavigateToTab?.call(3);
+        } else if (label == 'Cek Pertumbuhan') {
+          onNavigateToTab?.call(1);
+        }
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.brightness == Brightness.dark
+                ? AppColors.darkBorder
+                : AppColors.lightBorder,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 32,
+              color: iconColor,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
