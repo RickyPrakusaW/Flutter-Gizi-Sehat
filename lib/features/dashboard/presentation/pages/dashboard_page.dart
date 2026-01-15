@@ -64,7 +64,7 @@ class DashboardPage extends StatelessWidget {
         children: [
           // HEADER
           Text(
-            'Halo, Ibu 👋',
+            'Halo, Ibu',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,

@@ -50,11 +50,11 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       await _repo.login(email, password);
-      debugPrint('✅ Login success: $email');
+      debugPrint('Login success: $email');
       _setLoading(false);
       return true;
     } catch (e) {
-      debugPrint('❌ Login error: $e');
+      debugPrint('Login error: $e');
       _setLoading(false);
       _setError(_readableError(e));
       return false;
@@ -71,7 +71,7 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       await _repo.register(email, password);
-      debugPrint('✅ Register success: $email');
+      debugPrint('Register success: $email');
 
       // Setelah register → langsung logout agar user kembali ke halaman login
       await _repo.logout();
@@ -79,7 +79,7 @@ class AuthProvider extends ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      debugPrint('❌ Register error: $e');
+      debugPrint('Register error: $e');
       _setLoading(false);
       _setError(_readableError(e));
       return false;
@@ -89,7 +89,7 @@ class AuthProvider extends ChangeNotifier {
   /// Logout user dari Firebase Auth
   Future<void> logout() async {
     await _repo.logout();
-    debugPrint('👋 User logged out');
+    debugPrint('User logged out');
   }
 
   // ============ Internal Helpers ============

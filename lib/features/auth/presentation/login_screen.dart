@@ -249,7 +249,7 @@ class _LoginScreenState extends State<LoginScreen>
   // Validators dengan pesan error yang informatif
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return '📧 Email tidak boleh kosong!';
+      return 'Email tidak boleh kosong!';
     }
 
     final emailRegex = RegExp(
@@ -258,7 +258,7 @@ class _LoginScreenState extends State<LoginScreen>
     );
 
     if (!emailRegex.hasMatch(value)) {
-      return '📧 Format email tidak valid!';
+      return 'Format email tidak valid!';
     }
 
     return null;
@@ -266,11 +266,11 @@ class _LoginScreenState extends State<LoginScreen>
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return '🔒 Password harus diisi!';
+      return 'Password harus diisi!';
     }
 
     if (value.length < 8) {
-      return '🔒 Password minimal 8 karakter!';
+      return 'Password minimal 8 karakter!';
     }
 
     return null;
@@ -437,7 +437,7 @@ class _LoginScreenState extends State<LoginScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Selamat Datang Kembali! 👋',
+                      'Selamat Datang Kembali!',
                       style: theme.textTheme.headlineSmall?.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.bold,
@@ -525,7 +525,7 @@ class _LoginScreenState extends State<LoginScreen>
             const Icon(Icons.email_outlined, size: 16),
             const SizedBox(width: 8),
             Text(
-              '📧 Alamat Email',
+              'Alamat Email',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: textColor,
                 fontWeight: FontWeight.w600,
@@ -590,7 +590,7 @@ class _LoginScreenState extends State<LoginScreen>
             const Icon(Icons.lock_outline, size: 16),
             const SizedBox(width: 8),
             Text(
-              '🔒 Password',
+              'Password',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: textColor,
                 fontWeight: FontWeight.w600,
@@ -784,7 +784,7 @@ class _LoginScreenState extends State<LoginScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
               child: Text(
-                '🔓 Lupa Password?',
+                'Lupa Password?',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: primaryColor,
                   fontWeight: FontWeight.w600,
@@ -837,7 +837,7 @@ class _LoginScreenState extends State<LoginScreen>
                   const Icon(Icons.person_add_alt_1, size: 16),
                   const SizedBox(width: 8),
                   Text(
-                    '📝 Daftar Akun Baru',
+                    'Daftar Akun Baru',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: primaryColor,
                       fontWeight: FontWeight.bold,

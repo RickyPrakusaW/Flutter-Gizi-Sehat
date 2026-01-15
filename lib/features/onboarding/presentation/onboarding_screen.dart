@@ -36,7 +36,7 @@ const onboardingItems = <OnboardingItem>[
   OnboardingItem(
     emoji: '🍎',
     image: 'assets/images/onboarding/onboarding1.jpg',
-    title: 'Deteksi Gizi dari Foto Makanan 📸',
+    title: 'Deteksi Gizi dari Foto Makanan',
     subtitle: 'AI pintar untuk analisis nutrisi',
     description:
     'Ambil foto makanan dan dapatkan analisis kandungan gizi secara otomatis. Teknologi AI membantu menghitung kalori, protein, dan nutrisi penting lainnya.',
@@ -48,7 +48,7 @@ const onboardingItems = <OnboardingItem>[
   OnboardingItem(
     emoji: '🧠',
     image: 'assets/images/onboarding/onboarding2.jpg',
-    title: 'Asisten Gizi dan Saran Menu 🍽️',
+    title: 'Asisten Gizi dan Saran Menu',
     subtitle: 'Konsultasi 24/7 dengan AI',
     description:
     'Dapatkan saran menu sehat sesuai usia anak, konsultasi gizi, dan rekomendasi makanan lokal yang terjangkau. Asisten AI siap membantu kapan saja.',
@@ -60,7 +60,7 @@ const onboardingItems = <OnboardingItem>[
   OnboardingItem(
     emoji: '👶',
     image: 'assets/images/onboarding/onboarding3.jpg',
-    title: 'Cegah Stunting Sejak Dini 📈',
+    title: 'Cegah Stunting Sejak Dini',
     subtitle: 'Pantau tumbuh kembang anak dengan mudah',
     description:
     'Gunakan kurva pertumbuhan WHO untuk memantau berat dan tinggi badan anak secara berkala. Deteksi dini risiko stunting untuk masa depan yang lebih sehat.',
@@ -333,8 +333,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   duration: const Duration(milliseconds: 300),
                   child: Text(
                     _currentPage == onboardingItems.length - 1
-                        ? '🚀 Mulai Sekarang!'
-                        : 'Lanjutkan →',
+                        ? 'Mulai Sekarang'
+                        : 'Lanjutkan',
                     key: ValueKey(_currentPage),
                     style: TextStyle(
                       fontSize: isSmallScreen ? 16 : 18,

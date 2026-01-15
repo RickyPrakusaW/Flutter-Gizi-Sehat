@@ -205,7 +205,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             ),
             const SizedBox(height: 20),
             Text(
-              '🎉 Registrasi Berhasil!',
+              'Registrasi Berhasil!',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -274,17 +274,17 @@ class _RegisterScreenState extends State<RegisterScreen>
   // Validators dengan pesan error yang informatif
   String? _validateName(String? value) {
     if (value == null || value.isEmpty) {
-      return '👤 Nama lengkap wajib diisi!';
+      return 'Nama lengkap wajib diisi!';
     }
     if (value.length < 3) {
-      return '👤 Nama minimal 3 karakter!';
+      return 'Nama minimal 3 karakter!';
     }
     return null;
   }
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return '📧 Email tidak boleh kosong!';
+      return 'Email tidak boleh kosong!';
     }
 
     final emailRegex = RegExp(
@@ -293,7 +293,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     );
 
     if (!emailRegex.hasMatch(value)) {
-      return '📧 Format email tidak valid!';
+      return 'Format email tidak valid!';
     }
 
     return null;
@@ -301,12 +301,12 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   String? _validatePhone(String? value) {
     if (value == null || value.isEmpty) {
-      return '📱 Nomor telepon diperlukan!';
+      return 'Nomor telepon diperlukan!';
     }
 
     final phoneRegex = RegExp(r'^[0-9]{10,13}$');
     if (!phoneRegex.hasMatch(value)) {
-      return '📱 Nomor telepon tidak valid!';
+      return 'Nomor telepon tidak valid!';
     }
 
     return null;
@@ -314,20 +314,20 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return '🔒 Password harus diisi!';
+      return 'Password harus diisi!';
     }
 
     if (value.length < 8) {
-      return '🔒 Password minimal 8 karakter!';
+      return 'Password minimal 8 karakter!';
     }
 
     // Password strength validation
     if (!value.contains(RegExp(r'[A-Z]'))) {
-      return '🔒 Password harus mengandung huruf besar!';
+      return 'Password harus mengandung huruf besar!';
     }
 
     if (!value.contains(RegExp(r'[0-9]'))) {
-      return '🔒 Password harus mengandung angka!';
+      return 'Password harus mengandung angka!';
     }
 
     return null;
@@ -335,11 +335,11 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   String? _validateConfirmPassword(String? value) {
     if (value == null || value.isEmpty) {
-      return '🔐 Konfirmasi password harus diisi!';
+      return 'Konfirmasi password harus diisi!';
     }
 
     if (value != _passCtrl.text) {
-      return '🔐 Password tidak cocok!';
+      return 'Password tidak cocok!';
     }
 
     return null;
@@ -459,7 +459,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '🚀 Mulai Perjalanan Gizi Sehat',
+          'Mulai Perjalanan Gizi Sehat',
           style: theme.textTheme.headlineSmall?.copyWith(
             color: textColor,
             fontWeight: FontWeight.bold,
@@ -545,7 +545,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             const Icon(Icons.person_outline, size: 16),
             const SizedBox(width: 8),
             Text(
-              '👤 Nama Lengkap',
+              'Nama Lengkap',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: textColor,
                 fontWeight: FontWeight.w600,
@@ -608,7 +608,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             const Icon(Icons.email_outlined, size: 16),
             const SizedBox(width: 8),
             Text(
-              '📧 Email',
+              'Email',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: textColor,
                 fontWeight: FontWeight.w600,
@@ -672,7 +672,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             const Icon(Icons.phone_outlined, size: 16),
             const SizedBox(width: 8),
             Text(
-              '📱 Nomor Telepon',
+              'Nomor Telepon',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: textColor,
                 fontWeight: FontWeight.w600,
@@ -736,7 +736,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             const Icon(Icons.lock_outline, size: 16),
             const SizedBox(width: 8),
             Text(
-              '🔒 Password',
+              'Password',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: textColor,
                 fontWeight: FontWeight.w600,
@@ -827,7 +827,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             const Icon(Icons.lock_reset_outlined, size: 16),
             const SizedBox(width: 8),
             Text(
-              '🔐 Konfirmasi Password',
+              'Konfirmasi Password',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: textColor,
                 fontWeight: FontWeight.w600,
