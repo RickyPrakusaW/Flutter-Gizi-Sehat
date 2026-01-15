@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
+import 'package:gizi_sehat_mobile_app/core/services/gemini_service.dart';
 import 'package:intl/intl.dart';
 
 /// Model untuk pesan chat
@@ -43,6 +44,8 @@ class _AssistantPageState extends State<AssistantPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
+  final GeminiService _geminiService = GeminiService();
+  bool _isLoading = false;
 
   /// List pertanyaan cepat yang tersedia
   final List<QuickQuestion> _quickQuestions = const [
@@ -100,8 +103,9 @@ class _AssistantPageState extends State<AssistantPage> {
   }
 
   /// Mengirim pesan user dan mendapatkan response dari AI
+  /// Menggunakan Google Gemini AI untuk generate response
   Future<void> _sendMessage(String message) async {
-    if (message.trim().isEmpty) return;
+    if (message.trim().isEmpty || _isLoading) return;
 
     // Tambahkan pesan user
     final userMessage = ChatMessage(
@@ -113,55 +117,47 @@ class _AssistantPageState extends State<AssistantPage> {
 
     setState(() {
       _messages.add(userMessage);
+      _isLoading = true;
     });
     _messageController.clear();
     _scrollToBottom();
 
-    // Simulasi typing indicator (opsional - bisa ditambahkan nanti)
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      // Kirim ke Gemini AI dan dapatkan response
+      final aiResponse = await _geminiService.sendMessage(message);
 
-    // Generate response AI (simulasi)
-    final aiResponse = _generateAIResponse(message);
-
-    setState(() {
-      _messages.add(
-        ChatMessage(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          content: aiResponse,
-          isFromUser: false,
-          timestamp: DateTime.now(),
-        ),
-      );
-    });
-    _scrollToBottom();
+      if (mounted) {
+        setState(() {
+          _messages.add(
+            ChatMessage(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              content: aiResponse,
+              isFromUser: false,
+              timestamp: DateTime.now(),
+            ),
+          );
+          _isLoading = false;
+        });
+        _scrollToBottom();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _messages.add(
+            ChatMessage(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              content: 'Maaf, terjadi kesalahan saat memproses pesan Anda. Silakan coba lagi.',
+              isFromUser: false,
+              timestamp: DateTime.now(),
+            ),
+          );
+          _isLoading = false;
+        });
+        _scrollToBottom();
+      }
+    }
   }
 
-  /// Generate response AI berdasarkan pesan user (simulasi)
-  String _generateAIResponse(String userMessage) {
-    final lowerMessage = userMessage.toLowerCase();
-
-    if (lowerMessage.contains('mpasi') || lowerMessage.contains('9-11')) {
-      return 'Untuk MPASI 9-11 bulan, fokus pada:\n\n✓ Tekstur lebih padat (makanan lumat kasar)\n✓ Variasi lauk pauk (ikan, ayam, daging)\n✓ Perkenalkan finger food\n✓ Frekuensi: 3x makan utama + 2x snack\n✓ Tetap berikan ASI/susu formula sesuai kebutuhan\n\nPerlu contoh menu hariannya?';
-    }
-
-    if (lowerMessage.contains('protein') || lowerMessage.contains('asupan')) {
-      return 'Asupan protein penting untuk pertumbuhan anak. Kebutuhan per hari:\n\n• 0-6 bulan: 9g (dari ASI)\n• 7-12 bulan: 11g\n• 1-3 tahun: 13g\n• 4-6 tahun: 19g\n\nSumber protein: telur, ikan, ayam, daging, tempe, tahu, kacang-kacangan. Ingin tahu cara menghitung kebutuhan spesifik anak Anda?';
-    }
-
-    if (lowerMessage.contains('sayur') ||
-        lowerMessage.contains('susah makan') ||
-        lowerMessage.contains('picky')) {
-      return 'Anak susah makan sayur? Ini tipsnya:\n\n✓ Sajikan dengan bentuk menarik (cetakan lucu)\n✓ Campur ke makanan favorit (bakso, nugget)\n✓ Ajak anak menyiapkan makanan bersama\n✓ Contohkan orang tua makan sayur\n✓ Jangan paksakan, tawarkan berkali-kali\n✓ Variasikan cara memasak (rebus, kukus, panggang)\n\nButuh ide resep yang menarik untuk anak?';
-    }
-
-    if (lowerMessage.contains('murah') ||
-        lowerMessage.contains('menu sehat') ||
-        lowerMessage.contains('budget')) {
-      return 'Menu sehat murah untuk anak:\n\n✓ Nasi + tempe goreng + sayur bayam\n✓ Nasi + telur dadar + tumis kangkung\n✓ Bihun goreng + tahu + sayur sop\n✓ Nasi + ikan kembung + capcay\n\nTips hemat:\n• Masak sendiri\n• Beli dalam jumlah banyak\n• Gunakan bahan lokal\n• Manfaatkan promo pasar\n\nIngin resep detailnya?';
-    }
-
-    return 'Terima kasih atas pertanyaannya! Untuk informasi yang lebih akurat dan personal, saya merekomendasikan untuk berkonsultasi dengan dokter anak atau ahli gizi. Sementara itu, pastikan anak mendapat ASI/susu formula, makanan bergizi seimbang, dan pemantauan tumbuh kembang rutin.\n\nIngin tahu lebih lanjut tentang topik lain?';
-  }
 
   /// Handle quick question button click
   void _handleQuickQuestion(QuickQuestion question) {
@@ -381,11 +377,81 @@ class _AssistantPageState extends State<AssistantPage> {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(16),
-      itemCount: _messages.length,
+      itemCount: _messages.length + (_isLoading ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == _messages.length && _isLoading) {
+          // Menampilkan typing indicator saat AI sedang memproses
+          return _buildTypingIndicator(theme, isDark);
+        }
         final message = _messages[index];
         return _buildChatBubble(message, theme, isDark);
       },
+    );
+  }
+
+  /// Membangun typing indicator saat AI sedang memproses pesan
+  Widget _buildTypingIndicator(ThemeData theme, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.accent.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.smart_toy_outlined,
+              size: 18,
+              color: AppColors.accent,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : Colors.grey.shade200,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+                bottomLeft: Radius.circular(4),
+                bottomRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextSecondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Mengetik...',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -569,7 +635,7 @@ class _AssistantPageState extends State<AssistantPage> {
             const SizedBox(width: 8),
             // Send Button
             InkWell(
-              onTap: () {
+              onTap: _isLoading ? null : () {
                 _sendMessage(_messageController.text);
               },
               borderRadius: BorderRadius.circular(24),
@@ -577,14 +643,25 @@ class _AssistantPageState extends State<AssistantPage> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.accent,
+                  color: _isLoading
+                      ? AppColors.accent.withOpacity(0.5)
+                      : AppColors.accent,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.send,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.send,
+                        color: Colors.white,
+                        size: 20,
+                      ),
               ),
             ),
           ],
