@@ -1,19 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
-/// ======= Design tokens (mudah diganti) =======
+// =======================================================
+// 🚪 ONBOARDING SCREEN – GERBANG PERTAMA USER
+// =======================================================
+// Ini halaman kesan pertama.
+// Kalau di sini jelek → user cabut 😬
+//
+// ASCII FLOW:
+//
+//  📱 App Dibuka
+//      |
+//  👋 Onboarding
+//      |
+//  👉 Login / Register
+//
+// =======================================================
+
+// ======= 🎨 DESIGN TOKENS =======
+// Ganti di sini, seluruh UI ikut berubah 😎
 const kBg = Color(0xFFFCFBF4);
 const kAccent = Color(0xFF5DB075);
 const kText = Color(0xFF333333);
 const kSpacing = 24.0;
 
-/// ======= Data model =======
+// ======= 📦 DATA MODEL =======
+// Satu halaman onboarding = satu item
 class OnboardingItem {
-  final String image;             // path asset: assets/images/onboarding/xxx.jpg
-  final String title;
-  final String subtitle;
-  final String description;
-  final String? networkFallback;  // opsional: fallback via internet
+  final String image;             // asset lokal
+  final String title;             // judul besar
+  final String subtitle;          // sub-judul
+  final String description;       // penjelasan
+  final String? networkFallback;  // cadangan kalau asset ilang 😅
 
   const OnboardingItem({
     required this.image,
@@ -24,35 +42,41 @@ class OnboardingItem {
   });
 }
 
-/// ======= Dummy data =======
+// ======= 🧪 DUMMY DATA =======
+// Ini “cerita” yang kamu ceritakan ke user
 const onboardingItems = <OnboardingItem>[
   OnboardingItem(
     image: 'assets/images/onboarding/onboarding1.jpg',
     title: 'Deteksi Gizi dari Foto Makanan',
     subtitle: 'AI pintar untuk analisis nutrisi',
     description:
-    'Ambil foto makanan dan dapatkan analisis kandungan gizi secara otomatis. Teknologi AI membantu menghitung kalori, protein, dan nutrisi penting lainnya.',
-    networkFallback: 'https://via.placeholder.com/800x560.png?text=Onboarding+1',
+    'Ambil foto makanan dan dapatkan analisis kandungan gizi secara otomatis.',
+    networkFallback:
+    'https://via.placeholder.com/800x560.png?text=Onboarding+1',
   ),
   OnboardingItem(
     image: 'assets/images/onboarding/onboarding2.jpg',
     title: 'Asisten Gizi dan Saran Menu',
     subtitle: 'Konsultasi 24/7 dengan AI',
     description:
-    'Dapatkan saran menu sehat sesuai usia anak, konsultasi gizi, dan rekomendasi makanan lokal yang terjangkau. Asisten AI siap membantu kapan saja.',
-    networkFallback: 'https://via.placeholder.com/800x560.png?text=Onboarding+2',
+    'Dapatkan saran menu sehat sesuai usia anak.',
+    networkFallback:
+    'https://via.placeholder.com/800x560.png?text=Onboarding+2',
   ),
   OnboardingItem(
     image: 'assets/images/onboarding/onboarding3.jpg',
     title: 'Cegah Stunting Sejak Dini',
-    subtitle: 'Pantau tumbuh kembang anak dengan mudah',
+    subtitle: 'Pantau tumbuh kembang anak',
     description:
-    'Gunakan kurva pertumbuhan WHO untuk memantau berat dan tinggi badan anak secara berkala. Deteksi dini risiko stunting untuk masa depan yang lebih sehat.',
-    networkFallback: 'https://via.placeholder.com/800x560.png?text=Onboarding+3',
+    'Gunakan kurva pertumbuhan WHO.',
+    networkFallback:
+    'https://via.placeholder.com/800x560.png?text=Onboarding+3',
   ),
 ];
 
-/// ======= Screen =======
+// =======================================================
+// 📱 ONBOARDING SCREEN
+// =======================================================
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -67,20 +91,42 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    // Precache gambar pertama biar nggak ngedip
+    print("");
+    print("👋 ================================");
+    print("👋 OnboardingScreen initState()");
+    print("👋 ================================");
+    print("");
+
+    // Precache gambar pertama supaya UX halus ✨
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      precacheImage(const AssetImage('assets/images/onboarding/onboarding1.jpg'), context);
+      print("🖼️ Precache gambar onboarding pertama");
+      precacheImage(
+        const AssetImage('assets/images/onboarding/onboarding1.jpg'),
+        context,
+      );
     });
   }
 
   @override
   void dispose() {
+    print("");
+    print("🧹 ================================");
+    print("🧹 OnboardingScreen dispose()");
+    print("🧹 PageController dibuang");
+    print("🧹 ================================");
+    print("");
+
     _controller.dispose();
     super.dispose();
   }
 
+  // ===============================
+  // 👉 PINDAH HALAMAN
+  // ===============================
   void _toNext() {
     final last = _page == onboardingItems.length - 1;
+    print("➡️ Tombol ditekan | page=$_page | last=$last");
+
     if (last) {
       _goToLogin();
     } else {
@@ -91,61 +137,83 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  // ===============================
+  // 🔐 KE LOGIN
+  // ===============================
   void _goToLogin() {
-    // ganti onboarding dengan login
+    print("🔐 Navigasi ke LOGIN");
     Navigator.of(context).pushReplacementNamed('/login');
   }
 
   @override
   Widget build(BuildContext context) {
+    print("🖥️ Build OnboardingScreen | page=$_page");
+
     return Scaffold(
       backgroundColor: kBg,
       body: SafeArea(
         child: Column(
           children: [
-            // ===== Halaman
+            // ===============================
+            // 📖 PAGEVIEW
+            // ===============================
             Expanded(
               child: PageView.builder(
                 controller: _controller,
                 itemCount: onboardingItems.length,
-                onPageChanged: (i) => setState(() => _page = i),
-                itemBuilder: (_, i) => OnboardingPage(item: onboardingItems[i]),
+                onPageChanged: (i) {
+                  print("📄 Page berubah ke $i");
+                  setState(() => _page = i);
+                },
+                itemBuilder: (_, i) =>
+                    OnboardingPage(item: onboardingItems[i]),
               ),
             ),
 
-            // ===== Indicator + Tombol
+            // ===============================
+            // ⚫ DOTS + BUTTON
+            // ===============================
             Padding(
-              padding: const EdgeInsets.fromLTRB(kSpacing, 16, kSpacing, 20),
+              padding:
+              const EdgeInsets.fromLTRB(kSpacing, 16, kSpacing, 20),
               child: Column(
                 children: [
                   _Dots(count: onboardingItems.length, active: _page),
                   const SizedBox(height: 32),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
                     children: [
-                      // Lewati (sembunyikan di halaman terakhir)
+                      // Lewati (hilang di halaman terakhir)
                       if (_page != onboardingItems.length - 1)
                         TextButton(
                           onPressed: _goToLogin,
                           child: const Text(
                             'Lewati',
-                            style: TextStyle(color: Colors.grey, fontSize: 16),
+                            style: TextStyle(
+                                color: Colors.grey, fontSize: 16),
                           ),
                         )
                       else
                         const SizedBox(width: 80),
 
-                      // Lanjut / Mulai Sekarang
                       ElevatedButton(
                         onPressed: _toNext,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: kAccent,
-                          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 28, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius:
+                              BorderRadius.circular(10)),
                         ),
                         child: Text(
-                          _page == onboardingItems.length - 1 ? 'Mulai Sekarang' : 'Lanjut',
-                          style: const TextStyle(color: Colors.white, fontSize: 16),
+                          _page ==
+                              onboardingItems.length - 1
+                              ? 'Mulai Sekarang'
+                              : 'Lanjut',
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 16),
                         ),
                       ),
                     ],
@@ -161,7 +229,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-/// ======= One onboarding page widget =======
+// =======================================================
+// 🖼️ SINGLE ONBOARDING PAGE
+// =======================================================
 class OnboardingPage extends StatelessWidget {
   final OnboardingItem item;
   const OnboardingPage({super.key, required this.item});
@@ -185,19 +255,31 @@ class OnboardingPage extends StatelessWidget {
           Text(
             item.title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: kText),
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: kText,
+            ),
           ),
           const SizedBox(height: 10),
           Text(
             item.subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: kAccent),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: kAccent,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             item.description,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.5),
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade700,
+              height: 1.5,
+            ),
           ),
         ],
       ),
@@ -205,7 +287,9 @@ class OnboardingPage extends StatelessWidget {
   }
 }
 
-/// ======= Rounded image with graceful fallback =======
+// =======================================================
+// 🧠 IMAGE WITH FALLBACK
+// =======================================================
 class _RoundedImage extends StatelessWidget {
   final double width;
   final double height;
@@ -224,45 +308,34 @@ class _RoundedImage extends StatelessWidget {
       await rootBundle.load(path);
       return true;
     } catch (_) {
+      print("❌ Asset tidak ditemukan: $path");
       return false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Pakai FutureBuilder untuk cek asset ada/tidak → fallback ke network bila perlu
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
       child: Container(
         width: width,
         height: height,
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              spreadRadius: 4,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
         child: FutureBuilder<bool>(
           future: _assetExists(assetPath),
           builder: (context, snap) {
-            final hasAsset = snap.data == true;
-            if (snap.connectionState == ConnectionState.waiting) {
+            if (snap.connectionState ==
+                ConnectionState.waiting) {
               return Container(color: Colors.grey.shade200);
             }
-            if (hasAsset) {
+            if (snap.data == true) {
               return Image.asset(assetPath, fit: BoxFit.cover);
             }
             if (networkFallback != null) {
-              return Image.network(networkFallback!, fit: BoxFit.cover);
+              return Image.network(networkFallback!,
+                  fit: BoxFit.cover);
             }
-            return Container(
-              color: Colors.grey.shade200,
-              alignment: Alignment.center,
-              child: const Text('Asset tidak ditemukan', style: TextStyle(color: Colors.grey)),
+            return const Center(
+              child: Text('Asset tidak ditemukan'),
             );
           },
         ),
@@ -271,7 +344,9 @@ class _RoundedImage extends StatelessWidget {
   }
 }
 
-/// ======= Dot indicator =======
+// =======================================================
+// ⚫ DOT INDICATOR
+// =======================================================
 class _Dots extends StatelessWidget {
   final int count;
   final int active;
@@ -297,3 +372,20 @@ class _Dots extends StatelessWidget {
     );
   }
 }
+
+/*
+===========================================================
+ASCII CLOSING:
+
+   (•‿•)ノ
+   Welcome to GiziSehat
+   Swipe with confidence 👉
+
+Catatan jujur:
+- UX onboarding kamu sudah solid ✅
+- Fallback asset = keputusan dewasa 🧠
+- Tinggal simpan flag "first_time_user" 🚀
+
+print("🎉 Onboarding siap produksi");
+===========================================================
+*/
