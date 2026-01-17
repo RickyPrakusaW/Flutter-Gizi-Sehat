@@ -8,11 +8,9 @@ ThemeData buildLightTheme() {
   const textSecondary = Color(0xFF7D7D7D);
   const border = Color(0xFFE8E8E8);
 
-  final colorScheme = ColorScheme.light(
+  const colorScheme = ColorScheme.light(
     primary: AppColors.accent,
-    background: background,
     surface: surface,
-    onBackground: textPrimary,
     onSurface: textPrimary,
   );
 

@@ -195,7 +195,7 @@ class _GrowthPageState extends State<GrowthPage> {
                 color: AppColors.accent.withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.refresh,
                 size: 18,
                 color: AppColors.accent,

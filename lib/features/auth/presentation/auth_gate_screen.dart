@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
+import 'package:gizi_sehat_mobile_app/features/auth/models/user_model.dart';
 import 'package:gizi_sehat_mobile_app/app_router.dart';
 import 'package:gizi_sehat_mobile_app/core/utils/first_time_prefs.dart';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
@@ -20,6 +21,7 @@ class AuthGateScreen extends StatefulWidget {
 class _AuthGateScreenState extends State<AuthGateScreen> {
   /// Status apakah sedang melakukan pengecekan
   bool _isChecking = true;
+
   /// Pesan status yang ditampilkan kepada user
   String _statusMessage = 'Memulai aplikasi...';
 
@@ -49,24 +51,44 @@ class _AuthGateScreenState extends State<AuthGateScreen> {
       }
 
       // Cek status autentikasi user
-      setState(() => _statusMessage = 'Memeriksa status autentikasi...');
-      await Future.delayed(const Duration(milliseconds: 800));
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+
+      // Jika butuh memastikan session valid/refresh token, lakukan di sini
+      // Tapi biasanya auth.status sudah ter-update oleh listener di AuthProvider (jika sudah init)
+      // Kita beri sedikit delay KECIL (misal 100ms) hanya utk pastikan provider siap,
+      // kalau tidak, langsung saja.
 
       if (!mounted) return;
 
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-
-      // Jika sudah login, arahkan ke dashboard
+      // Jika sudah login, arahkan ke dashboard yang sesuai
       if (auth.status == AuthStatus.authenticated) {
-        setState(() => _statusMessage = 'Login berhasil! Mengarahkan...');
-        await Future.delayed(const Duration(milliseconds: 500));
-        if (mounted) {
+        if (auth.userModel == null) {
+          // Quick retry logic without long delay
+          int retries = 0;
+          while (auth.userModel == null && retries < 10) {
+            await Future.delayed(
+              const Duration(milliseconds: 100),
+            ); // 100ms interval
+            retries++;
+          }
+        }
+
+        final role = auth.userModel?.role;
+        final status = auth.userModel?.status;
+
+        if (!mounted) return;
+
+        if (role == UserRole.admin) {
+          Navigator.pushReplacementNamed(context, AppRouter.adminDashboard);
+        } else if (role == UserRole.doctor) {
+          // Note: DoctorDashboard sekarang handle pending state, jadi aman langsung redirect
+          Navigator.pushReplacementNamed(context, AppRouter.doctorDashboard);
+        } else {
+          // Parent / Default
           Navigator.pushReplacementNamed(context, AppRouter.dashboard);
         }
       } else {
         // Jika belum login, arahkan ke halaman login
-        setState(() => _statusMessage = 'Mengarahkan ke halaman login...');
-        await Future.delayed(const Duration(milliseconds: 500));
         if (mounted) {
           Navigator.pushReplacementNamed(context, AppRouter.login);
         }
@@ -107,7 +129,7 @@ class _AuthGateScreenState extends State<AuthGateScreen> {
               Container(
                 width: 100,
                 height: 100,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.accent,
                   shape: BoxShape.circle,
                 ),
@@ -127,10 +149,7 @@ class _AuthGateScreenState extends State<AuthGateScreen> {
               const SizedBox(height: 8),
               Text(
                 'Asisten Gizi Keluarga',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 48),
               const CircularProgressIndicator(
@@ -139,19 +158,13 @@ class _AuthGateScreenState extends State<AuthGateScreen> {
               const SizedBox(height: 24),
               Text(
                 _statusMessage,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 64),
               Text(
                 'Versi 1.0.0',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade400,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
               ),
             ],
           ),

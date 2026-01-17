@@ -140,7 +140,7 @@ class _NutritionPageState extends State<NutritionPage> {
               color: AppColors.accent.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.refresh,
               size: 20,
               color: AppColors.accent,
@@ -176,7 +176,7 @@ class _NutritionPageState extends State<NutritionPage> {
               color: AppColors.accent.withOpacity(0.15),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(
+            child: const Text(
               'MPASI',
               style: TextStyle(
                 fontSize: 12,
@@ -332,7 +332,7 @@ class _NutritionPageState extends State<NutritionPage> {
             value: progress,
             minHeight: 8,
             backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.accent),
+            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
           ),
         ),
       ],

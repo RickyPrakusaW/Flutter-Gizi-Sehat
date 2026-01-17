@@ -8,11 +8,9 @@ ThemeData buildDarkTheme() {
   const textSecondary = Color(0xFFA0A0A0);
   const border = Color(0xFF2A2A2A);
 
-  final colorScheme = ColorScheme.dark(
+  const colorScheme = ColorScheme.dark(
     primary: AppColors.accent,
-    background: background,
     surface: surface,
-    onBackground: textPrimary,
     onSurface: textPrimary,
   );
 

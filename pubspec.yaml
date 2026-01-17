@@ -29,6 +29,8 @@ dependencies:
 
   # ---- Lainnya ----
   flutter_native_splash: ^2.4.0
+  image_picker: ^1.2.1
+  cached_network_image: ^3.3.1
 
 
 dev_dependencies:

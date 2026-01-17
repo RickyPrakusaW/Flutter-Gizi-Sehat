@@ -123,7 +123,7 @@ class _AssistantPageState extends State<AssistantPage> {
     await Future.delayed(const Duration(seconds: 1));
 
     // Response default
-    final aiResponse = 'Maaf, fitur AI Asisten Gizi saat ini sedang tidak tersedia. '
+    const aiResponse = 'Maaf, fitur AI Asisten Gizi saat ini sedang tidak tersedia. '
         'Silakan hubungi dokter atau ahli gizi untuk konsultasi lebih lanjut.';
 
     if (mounted) {
@@ -218,7 +218,7 @@ class _AssistantPageState extends State<AssistantPage> {
                 color: AppColors.accent.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.smart_toy_outlined,
                 color: AppColors.accent,
                 size: 24,
@@ -388,7 +388,7 @@ class _AssistantPageState extends State<AssistantPage> {
               color: AppColors.accent.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.smart_toy_outlined,
               size: 18,
               color: AppColors.accent,
@@ -459,7 +459,7 @@ class _AssistantPageState extends State<AssistantPage> {
                 color: AppColors.accent.withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.smart_toy_outlined,
                 size: 18,
                 color: AppColors.accent,

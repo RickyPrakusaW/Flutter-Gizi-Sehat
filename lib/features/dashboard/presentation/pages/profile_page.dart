@@ -348,7 +348,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                       Switch(
                         value: darkModeOn,
-                        activeColor: AppColors.accent,
+                        activeThumbColor: AppColors.accent,
                         onChanged: (val) {
                           context.read<ThemeProvider>().toggleTheme(val);
                         },

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
 import 'package:gizi_sehat_mobile_app/app_router.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
+import 'package:gizi_sehat_mobile_app/features/auth/models/user_model.dart';
 
 /// Screen untuk proses login user
 /// Menampilkan form email dan password dengan validasi
@@ -18,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+
   /// Status apakah password disembunyikan
   bool _obscure = true;
 
@@ -37,24 +39,66 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final auth = context.read<AuthProvider>();
 
-    final ok = await auth.login(
-      email: _emailCtrl.text.trim(),
-      password: _passCtrl.text.trim(),
-    );
+    final email = _emailCtrl.text.trim();
+    final password = _passCtrl.text.trim();
+
+    // 1. Cek Hardcoded Admin Login (Bypass Firebase)
+    if (email == 'admin' && password == 'admin123') {
+      Navigator.pushReplacementNamed(context, AppRouter.adminDashboard);
+      return;
+    }
+
+    // 2. Login User Biasa (Firebase)
+    final ok = await auth.login(email: email, password: password);
 
     if (!mounted) return;
 
     if (ok) {
-      // Login berhasil, navigasi ke dashboard
-      Navigator.pushReplacementNamed(context, AppRouter.dashboard);
+      // Login berhasil, tunggu sebentar untuk sinkronisasi role
+      // AuthProvider sudah mulai fetch di background saat auth state berubah
+
+      // Tunggu hingga userModel tersedia (max 3 detik)
+      int retries = 0;
+      while (auth.userModel == null && retries < 30) {
+        // 30 * 100ms = 3 detik max, tapi check tiap 100ms
+        await Future.delayed(const Duration(milliseconds: 100));
+        retries++;
+      }
+
+      if (!mounted) return;
+
+      final role = auth.userModel?.role;
+      final status = auth.userModel?.status;
+
+      if (role == UserRole.admin) {
+        Navigator.pushReplacementNamed(context, AppRouter.adminDashboard);
+      } else if (role == UserRole.doctor) {
+        if (status == UserStatus.active) {
+          Navigator.pushReplacementNamed(context, AppRouter.doctorDashboard);
+        } else {
+          // Dokter belum diverifikasi
+          await auth.logout();
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Akun Anda belum diverifikasi oleh Admin. Harap tunggu persetujuan (Max 1x24 Jam).',
+              ),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+      } else {
+        // Parent / Default
+        Navigator.pushReplacementNamed(context, AppRouter.dashboard);
+      }
     } else {
       // Login gagal, tampilkan error message
-      final msg = auth.errorMessage ?? 'Login gagal. Periksa email dan password Anda.';
+      final msg =
+          auth.errorMessage ?? 'Login gagal. Periksa email dan password Anda.';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(msg),
-          backgroundColor: Colors.redAccent,
-        ),
+        SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
       );
     }
   }
@@ -77,12 +121,10 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacementNamed(context, AppRouter.dashboard);
     } else {
       // Login gagal, tampilkan error message
-      final msg = auth.errorMessage ?? 'Login dengan Google gagal. Silakan coba lagi.';
+      final msg =
+          auth.errorMessage ?? 'Login dengan Google gagal. Silakan coba lagi.';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(msg),
-          backgroundColor: Colors.redAccent,
-        ),
+        SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
       );
     }
   }
@@ -92,6 +134,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (value == null || value.isEmpty) {
       return 'Email tidak boleh kosong!';
     }
+
+    // Allow "admin" for hardcoded admin login
+    if (value.trim() == 'admin') return null;
 
     final emailRegex = RegExp(
       r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
@@ -151,10 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Aplikasi GiziSehat',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 48),
                 TextFormField(
@@ -186,7 +228,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         setState(() => _obscure = !_obscure);
                       },
                       icon: Icon(
-                        _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        _obscure
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                       ),
                     ),
                     border: OutlineInputBorder(
@@ -204,7 +248,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Fitur reset password akan segera tersedia'),
+                          content: Text(
+                            'Fitur reset password akan segera tersedia',
+                          ),
                         ),
                       );
                     },
@@ -246,10 +292,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: Divider(
-                        color: Colors.grey.shade300,
-                        thickness: 1,
-                      ),
+                      child: Divider(color: Colors.grey.shade300, thickness: 1),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -262,10 +305,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     Expanded(
-                      child: Divider(
-                        color: Colors.grey.shade300,
-                        thickness: 1,
-                      ),
+                      child: Divider(color: Colors.grey.shade300, thickness: 1),
                     ),
                   ],
                 ),
@@ -322,7 +362,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushReplacementNamed(context, AppRouter.register);
+                        Navigator.pushReplacementNamed(
+                          context,
+                          AppRouter.register,
+                        );
                       },
                       child: const Text('Daftar'),
                     ),

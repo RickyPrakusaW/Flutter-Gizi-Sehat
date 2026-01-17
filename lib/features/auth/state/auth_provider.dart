@@ -3,12 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:gizi_sehat_mobile_app/data/repositories/auth_repository.dart';
 import 'package:gizi_sehat_mobile_app/data/repositories/auth_repository_impl.dart';
 import 'package:gizi_sehat_mobile_app/core/services/auth_service.dart';
+import 'package:gizi_sehat_mobile_app/features/auth/models/user_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum AuthStatus {
-  unknown,
-  authenticated,
-  unauthenticated,
-}
+enum AuthStatus { unknown, authenticated, unauthenticated }
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository _repo = AuthRepositoryImpl(AuthService());
@@ -32,19 +30,45 @@ class AuthProvider extends ChangeNotifier {
       if (userData == null) {
         _status = AuthStatus.unauthenticated;
         _currentEmail = null;
+        _userModel = null;
       } else {
         _status = AuthStatus.authenticated;
         _currentEmail = userData.email;
+        _fetchUserRole(userData.uid);
       }
       notifyListeners();
     });
   }
 
+  UserModel? _userModel;
+  UserModel? get userModel => _userModel;
+
+  StreamSubscription<DocumentSnapshot>? _userSub;
+
+  void _fetchUserRole(String uid) {
+    _userSub?.cancel();
+    _userSub = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .snapshots()
+        .listen(
+          (doc) {
+            if (doc.exists && doc.data() != null) {
+              _userModel = UserModel.fromJson(doc.data()!);
+              debugPrint(
+                'User updated: ${_userModel?.email}, Role: ${_userModel?.role}, Status: ${_userModel?.status}',
+              );
+              notifyListeners();
+            }
+          },
+          onError: (e) {
+            debugPrint('Error listening to user role: $e');
+          },
+        );
+  }
+
   /// Login user menggunakan email & password Firebase Auth
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> login({required String email, required String password}) async {
     _setLoading(true);
     _clearError();
 
@@ -65,12 +89,33 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> register({
     required String email,
     required String password,
+    required String name,
+    UserRole role = UserRole.parent,
+    String? title,
+    String? specialist,
+    String? strNumber,
+    String? sipNumber,
+    String? practiceLocation,
+    String? alumni,
+    int? experienceYear,
   }) async {
     _setLoading(true);
     _clearError();
 
     try {
-      await _repo.register(email, password);
+      await _repo.register(
+        email,
+        password,
+        role: role,
+        name: name,
+        title: title,
+        specialist: specialist,
+        strNumber: strNumber,
+        sipNumber: sipNumber,
+        practiceLocation: practiceLocation,
+        alumni: alumni,
+        experienceYear: experienceYear,
+      );
       debugPrint('Register success: $email');
 
       // Setelah register → langsung logout agar user kembali ke halaman login
@@ -142,8 +187,7 @@ class AuthProvider extends ChangeNotifier {
     if (raw.contains('weak-password')) {
       return 'Password terlalu lemah';
     }
-    if (raw.contains('user-not-found') ||
-        (raw.contains('no user record'))) {
+    if (raw.contains('user-not-found') || (raw.contains('no user record'))) {
       return 'Akun tidak ditemukan';
     }
     if (raw.contains('wrong-password')) {

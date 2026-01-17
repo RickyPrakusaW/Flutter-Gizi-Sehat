@@ -6,7 +6,7 @@ import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
 class DashboardPage extends StatelessWidget {
   /// Callback untuk navigasi ke tab tertentu (0=Beranda, 1=Tumbuh, 2=Menu, 3=Asisten, 4=Profil)
   final Function(int)? onNavigateToTab;
-  
+
   const DashboardPage({super.key, this.onNavigateToTab});
 
   @override
@@ -192,10 +192,7 @@ class DashboardPage extends StatelessWidget {
               color: AppColors.accent.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.child_care,
-              color: AppColors.accent,
-            ),
+            child: const Icon(Icons.child_care, color: AppColors.accent),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -222,7 +219,10 @@ class DashboardPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: statusColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -314,6 +314,7 @@ class DashboardPage extends StatelessWidget {
                   icon: Icons.show_chart,
                   label: 'Cek Pertumbuhan',
                   iconColor: AppColors.accent,
+                  onTap: () => onNavigateToTab?.call(1),
                 ),
               ),
               const SizedBox(width: 12),
@@ -324,6 +325,35 @@ class DashboardPage extends StatelessWidget {
                   icon: Icons.warning_amber_rounded,
                   label: 'Skrining Risiko',
                   iconColor: Colors.orange,
+                  onTap: () {}, // TODO
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickActionCard(
+                  context: context,
+                  theme: theme,
+                  icon: Icons.calendar_month,
+                  label: 'Jadwal Makan',
+                  iconColor: Colors.orange,
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/nutrition-schedule'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildQuickActionCard(
+                  context: context,
+                  theme: theme,
+                  icon: Icons.medical_services,
+                  label: 'Konsultasi',
+                  iconColor: Colors.purple,
+                  onTap: () => Navigator.pushNamed(context, '/doctor-list'),
                 ),
               ),
             ],
@@ -335,9 +365,10 @@ class DashboardPage extends StatelessWidget {
                 child: _buildQuickActionCard(
                   context: context,
                   theme: theme,
-                  icon: Icons.calendar_today,
-                  label: 'Jadwal Posyandu',
-                  iconColor: AppColors.accent,
+                  icon: Icons.shopping_bag,
+                  label: 'Toko Sehat',
+                  iconColor: Colors.green,
+                  onTap: () => Navigator.pushNamed(context, '/marketplace'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -348,6 +379,7 @@ class DashboardPage extends StatelessWidget {
                   icon: Icons.smart_toy_outlined,
                   label: 'Chat Asisten',
                   iconColor: const Color(0xFF2196F3),
+                  onTap: () => onNavigateToTab?.call(3),
                 ),
               ),
             ],
@@ -365,15 +397,10 @@ class DashboardPage extends StatelessWidget {
     required IconData icon,
     required String label,
     required Color iconColor,
+    required VoidCallback? onTap,
   }) {
     return InkWell(
-      onTap: () {
-        if (label == 'Chat Asisten') {
-          onNavigateToTab?.call(3);
-        } else if (label == 'Cek Pertumbuhan') {
-          onNavigateToTab?.call(1);
-        }
-      },
+      onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -388,11 +415,7 @@ class DashboardPage extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              size: 32,
-              color: iconColor,
-            ),
+            Icon(icon, size: 32, color: iconColor),
             const SizedBox(height: 12),
             Text(
               label,

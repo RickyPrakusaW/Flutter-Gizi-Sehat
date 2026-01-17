@@ -17,17 +17,14 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    await _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  Future<void> registerWithEmail({
+  Future<UserCredential> registerWithEmail({
     required String email,
     required String password,
   }) async {
-    await _auth.createUserWithEmailAndPassword(
+    return await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
@@ -49,7 +46,8 @@ class AuthService {
     }
 
     // Step 2: Dapatkan authentication details dari Google account
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
 
     // Step 3: Buat credential untuk Firebase
     final credential = GoogleAuthProvider.credential(

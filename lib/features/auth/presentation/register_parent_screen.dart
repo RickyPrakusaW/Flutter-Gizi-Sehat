@@ -6,16 +6,16 @@ import 'package:gizi_sehat_mobile_app/app_router.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/models/user_model.dart';
 
-/// Screen untuk proses registrasi user baru
-/// Menampilkan form: nama, email, telepon, password, dan konfirmasi password
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+/// Screen untuk proses registrasi Orang Tua (User Biasa)
+/// Form simpel: Nama, Email, Telepon, Password
+class RegisterParentScreen extends StatefulWidget {
+  const RegisterParentScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<RegisterParentScreen> createState() => _RegisterParentScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterParentScreenState extends State<RegisterParentScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
@@ -23,9 +23,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
 
-  UserRole _selectedRole = UserRole.parent;
-
-  /// Status visibility untuk password dan konfirmasi password
   bool _hidePass = true;
   bool _hideConfirm = true;
 
@@ -39,8 +36,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  /// Handler untuk submit form registrasi
-  /// Memvalidasi form, melakukan registrasi, dan menampilkan dialog sukses jika berhasil
   Future<void> _onSubmit() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -52,16 +47,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       email: _emailCtrl.text.trim(),
       password: _passCtrl.text.trim(),
       name: _nameCtrl.text.trim(),
-      role: _selectedRole,
+      role: UserRole.parent,
+      // Note: Telepon belum disimpan di auth register method, perlu disesuaikan jika ingin disimpan
+      // Untuk MVP orang tua, email & password sudah cukup untuk Auth
     );
 
     if (!mounted) return;
 
     if (ok) {
-      // Registrasi berhasil, tampilkan dialog sukses
       _showSuccessDialog();
     } else {
-      // Registrasi gagal, tampilkan error message
       final msg = auth.errorMessage ?? 'Registrasi gagal. Silakan coba lagi.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
@@ -69,8 +64,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  /// Menampilkan dialog sukses setelah registrasi berhasil
-  /// User akan diarahkan ke halaman login setelah menutup dialog
   void _showSuccessDialog() {
     showDialog(
       context: context,
@@ -84,13 +77,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ],
         ),
         content: const Text(
-          'Akun Anda telah berhasil dibuat. Silakan login untuk melanjutkan.',
+          'Akun Orang Tua Anda telah berhasil dibuat. Silakan login untuk mulai memantau tumbuh kembang anak.',
         ),
         actions: [
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, AppRouter.login);
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRouter.login,
+                (route) => false,
+              );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
             child: const Text('Login'),
@@ -100,80 +97,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  /// Validasi nama lengkap (minimal 3 karakter)
+  // Validators
   String? _validateName(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Nama lengkap wajib diisi!';
-    }
-    if (value.length < 3) {
-      return 'Nama minimal 3 karakter!';
-    }
+    if (value == null || value.isEmpty) return 'Nama lengkap wajib diisi!';
+    if (value.length < 3) return 'Nama minimal 3 karakter!';
     return null;
   }
 
-  /// Validasi format email
   String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Email tidak boleh kosong!';
-    }
-
+    if (value == null || value.isEmpty) return 'Email tidak boleh kosong!';
     final emailRegex = RegExp(
       r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
       caseSensitive: false,
     );
-
-    if (!emailRegex.hasMatch(value)) {
-      return 'Format email tidak valid!';
-    }
-
+    if (!emailRegex.hasMatch(value)) return 'Format email tidak valid!';
     return null;
   }
 
-  /// Validasi nomor telepon (10-13 digit angka)
   String? _validatePhone(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Nomor telepon diperlukan!';
-    }
-
+    if (value == null || value.isEmpty) return 'Nomor telepon diperlukan!';
     final phoneRegex = RegExp(r'^[0-9]{10,13}$');
-    if (!phoneRegex.hasMatch(value)) {
-      return 'Nomor telepon tidak valid!';
-    }
-
+    if (!phoneRegex.hasMatch(value)) return 'Nomor telepon tidak valid!';
     return null;
   }
 
-  /// Validasi password (minimal 8 karakter, harus ada huruf besar dan angka)
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Password harus diisi!';
-    }
-
-    if (value.length < 8) {
-      return 'Password minimal 8 karakter!';
-    }
-
-    if (!value.contains(RegExp(r'[A-Z]'))) {
+    if (value == null || value.isEmpty) return 'Password harus diisi!';
+    if (value.length < 8) return 'Password minimal 8 karakter!';
+    if (!value.contains(RegExp(r'[A-Z]')))
       return 'Password harus mengandung huruf besar!';
-    }
-
-    if (!value.contains(RegExp(r'[0-9]'))) {
+    if (!value.contains(RegExp(r'[0-9]')))
       return 'Password harus mengandung angka!';
-    }
-
     return null;
   }
 
-  /// Validasi konfirmasi password (harus sama dengan password)
   String? _validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.isEmpty)
       return 'Konfirmasi password harus diisi!';
-    }
-
-    if (value != _passCtrl.text) {
-      return 'Password tidak cocok!';
-    }
-
+    if (value != _passCtrl.text) return 'Password tidak cocok!';
     return null;
   }
 
@@ -185,11 +146,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        title: const Text("Daftar Orang Tua"),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
+        ),
+        titleTextStyle: theme.textTheme.titleLarge?.copyWith(
+          color: theme.colorScheme.onSurface,
+          fontWeight: FontWeight.bold,
         ),
       ),
       body: SafeArea(
@@ -201,45 +167,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Buat Akun Baru',
+                  'Buat Akun Orang Tua',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Bergabunglah dengan GiziSehat untuk memantau tumbuh kembang anak.',
+                  'Isi form singkat ini untuk segera memantau gizi anak Anda.',
                   style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 32),
-                DropdownButtonFormField<UserRole>(
-                  initialValue: _selectedRole,
-                  items: const [
-                    DropdownMenuItem(
-                      value: UserRole.parent,
-                      child: Text('Orang Tua'),
-                    ),
-                    DropdownMenuItem(
-                      value: UserRole.doctor,
-                      child: Text('Dokter'),
-                    ),
-                  ],
-                  onChanged: (val) {
-                    setState(() {
-                      if (val != null) _selectedRole = val;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Daftar Sebagai',
-                    prefixIcon: const Icon(Icons.badge_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 16),
+
+                // Nama Lengkap
                 TextFormField(
                   controller: _nameCtrl,
                   textInputAction: TextInputAction.next,
@@ -255,6 +195,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: _validateName,
                 ),
                 const SizedBox(height: 16),
+
+                // Email
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
@@ -271,6 +213,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: _validateEmail,
                 ),
                 const SizedBox(height: 16),
+
+                // Phone
                 TextFormField(
                   controller: _phoneCtrl,
                   keyboardType: TextInputType.phone,
@@ -287,6 +231,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: _validatePhone,
                 ),
                 const SizedBox(height: 16),
+
+                // Password
                 TextFormField(
                   controller: _passCtrl,
                   obscureText: _hidePass,
@@ -295,9 +241,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() => _hidePass = !_hidePass);
-                      },
+                      onPressed: () => setState(() => _hidePass = !_hidePass),
                       icon: Icon(
                         _hidePass
                             ? Icons.visibility_outlined
@@ -313,6 +257,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: _validatePassword,
                 ),
                 const SizedBox(height: 16),
+
+                // Confirm Password
                 TextFormField(
                   controller: _confirmCtrl,
                   obscureText: _hideConfirm,
@@ -322,9 +268,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Konfirmasi Password',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() => _hideConfirm = !_hideConfirm);
-                      },
+                      onPressed: () =>
+                          setState(() => _hideConfirm = !_hideConfirm),
                       icon: Icon(
                         _hideConfirm
                             ? Icons.visibility_outlined
@@ -340,6 +285,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: _validateConfirmPassword,
                 ),
                 const SizedBox(height: 32),
+
                 SizedBox(
                   height: 50,
                   child: ElevatedButton(
@@ -368,25 +314,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Sudah punya akun? ',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(
-                          context,
-                          AppRouter.login,
-                        );
-                      },
-                      child: const Text('Login'),
-                    ),
-                  ],
                 ),
               ],
             ),
