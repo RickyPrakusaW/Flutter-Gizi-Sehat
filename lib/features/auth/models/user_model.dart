@@ -17,6 +17,9 @@ class UserModel {
   final String? practiceLocation; // Lokasi Praktik
   final String? alumni; // Alumni Universitas
   final int? experienceYear; // Tahun Pengalaman (angka)
+  final String? province;
+  final String? city;
+  final String? district;
 
   UserModel({
     required this.id,
@@ -33,6 +36,9 @@ class UserModel {
     this.practiceLocation,
     this.alumni,
     this.experienceYear,
+    this.province,
+    this.city,
+    this.district,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -44,7 +50,8 @@ class UserModel {
         (e) => e.name == (json['role'] ?? 'parent'),
         orElse: () => UserRole.parent,
       ),
-      profileImage: json['profile_image'] as String?,
+      profileImage:
+          json['profileImage'] as String? ?? json['profile_image'] as String?,
       status: UserStatus.values.firstWhere(
         (e) => e.name == (json['status'] ?? 'active'),
         orElse: () => UserStatus.active,
@@ -57,6 +64,9 @@ class UserModel {
       practiceLocation: json['practice_location'] as String?,
       alumni: json['alumni'] as String?,
       experienceYear: json['experience_year'] as int?,
+      province: json['province'] as String?,
+      city: json['city'] as String?,
+      district: json['district'] as String?,
     );
   }
 
@@ -76,6 +86,9 @@ class UserModel {
       'practice_location': practiceLocation,
       'alumni': alumni,
       'experience_year': experienceYear,
+      'province': province,
+      'city': city,
+      'district': district,
     };
   }
 }

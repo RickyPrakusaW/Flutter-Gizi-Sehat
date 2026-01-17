@@ -17,6 +17,7 @@ import 'package:gizi_sehat_mobile_app/features/marketplace/screens/cart_screen.d
 import 'package:gizi_sehat_mobile_app/features/marketplace/screens/invoice_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/admin/presentation/admin_dashboard_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/doctor_dashboard/presentation/doctor_dashboard_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/profile_page.dart';
 
 class AppRouter {
   static const String authGate = '/auth-gate';
@@ -35,6 +36,7 @@ class AppRouter {
   static const String invoice = '/invoice';
   static const String adminDashboard = '/admin-dashboard';
   static const String doctorDashboard = '/doctor-dashboard';
+  static const String profile = '/profile';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -131,6 +133,12 @@ class AppRouter {
       case doctorDashboard:
         return MaterialPageRoute(
           builder: (_) => const DoctorDashboardScreen(),
+          settings: settings,
+        );
+
+      case profile:
+        return MaterialPageRoute(
+          builder: (_) => const ProfilePage(),
           settings: settings,
         );
 

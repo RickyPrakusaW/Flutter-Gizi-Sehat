@@ -14,6 +14,7 @@ class AuthUserData {
 
 abstract class AuthRepository {
   Stream<AuthUserData?> watchAuthState();
+  AuthUserData? get currentUser;
   Future<void> login(String email, String password);
   Future<void> register(
     String email,

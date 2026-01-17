@@ -159,6 +159,43 @@ class AuthProvider extends ChangeNotifier {
     debugPrint('User logged out');
   }
 
+  // ============ Profile Updates ============
+
+  Future<void> updateProfile({
+    String? name,
+    String? photoUrl,
+    String? province,
+    String? city,
+    String? district,
+  }) async {
+    _setLoading(true);
+    try {
+      final user = _repo.currentUser;
+      if (user != null) {
+        // Update Firestore
+        final Map<String, dynamic> data = {};
+        if (name != null) data['name'] = name;
+        if (photoUrl != null) data['profileImage'] = photoUrl;
+        if (province != null) data['province'] = province;
+        if (city != null) data['city'] = city;
+        if (district != null) data['district'] = district;
+
+        if (data.isNotEmpty) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .update(data);
+        }
+      }
+      _setLoading(false);
+    } catch (e) {
+      debugPrint('Update profile error: $e');
+      _setLoading(false);
+      _setError('Gagal memperbarui profil: $e');
+      rethrow;
+    }
+  }
+
   // ============ Internal Helpers ============
   void _setLoading(bool value) {
     _isLoading = value;
@@ -208,6 +245,7 @@ class AuthProvider extends ChangeNotifier {
   @override
   void dispose() {
     _authSub?.cancel();
+    _userSub?.cancel();
     super.dispose();
   }
 }

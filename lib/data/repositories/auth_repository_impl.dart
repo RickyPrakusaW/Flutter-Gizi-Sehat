@@ -21,6 +21,13 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  AuthUserData? get currentUser {
+    final user = _service.currentUser;
+    if (user == null) return null;
+    return AuthUserData(uid: user.uid, email: user.email);
+  }
+
+  @override
   Future<void> login(String email, String password) {
     return _service.signInWithEmail(email: email, password: password);
   }

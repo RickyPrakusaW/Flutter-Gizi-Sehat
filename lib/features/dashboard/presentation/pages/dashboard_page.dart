@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
+import 'package:gizi_sehat_mobile_app/app_router.dart';
 
 class DashboardPage extends StatelessWidget {
   final Function(int)? onNavigateToTab;
@@ -105,10 +106,7 @@ class DashboardPage extends StatelessWidget {
           GestureDetector(
             onTap: () {
               // Navigate to Profile Screen
-              Navigator.pushNamed(context, '/profile');
-              // Assuming /profile route exists or use MaterialPageRoute to ProfilePage() if strictly needed
-              // But standard way:
-              // Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfilePage()));
+              Navigator.pushNamed(context, AppRouter.profile);
             },
             child: CircleAvatar(
               radius: 26,
