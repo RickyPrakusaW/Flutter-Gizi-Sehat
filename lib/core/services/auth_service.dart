@@ -35,7 +35,7 @@ class AuthService {
   /// 1. Trigger Google Sign-In flow
   /// 2. Dapatkan authentication credentials dari Google
   /// 3. Sign in ke Firebase menggunakan credentials tersebut
-  Future<void> signInWithGoogle() async {
+  Future<UserCredential> signInWithGoogle() async {
     // Step 1: Trigger Google Sign-In flow
     // Ini akan membuka dialog Google Sign-In
     final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -56,7 +56,7 @@ class AuthService {
     );
 
     // Step 4: Sign in ke Firebase menggunakan credential
-    await _auth.signInWithCredential(credential);
+    return await _auth.signInWithCredential(credential);
   }
 
   Future<void> signOut() async {

@@ -87,8 +87,37 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> signInWithGoogle() {
-    return _service.signInWithGoogle();
+  Future<void> signInWithGoogle() async {
+    final cred = await _service.signInWithGoogle();
+
+    // Jika login berhasil, cek apakah data user sudah ada di Firestore
+    if (cred.user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(cred.user!.uid)
+          .get();
+
+      if (!userDoc.exists) {
+        // User baru pertama kali login via Google -> Buat sebagai Parent
+        final email = cred.user!.email ?? 'no-email';
+        final name = cred.user!.displayName ?? email.split('@')[0];
+        final photo = cred.user!.photoURL;
+
+        final newUser = UserModel(
+          id: cred.user!.uid,
+          email: email,
+          name: name,
+          role: UserRole.parent, // Default role untuk Google Sign-In
+          status: UserStatus.active, // Langsung aktif
+          profileImage: photo,
+        );
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(cred.user!.uid)
+            .set(newUser.toJson());
+      }
+    }
   }
 
   @override
