@@ -1,24 +1,44 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const accent = Color(0xFF4CAF50);
-  static const primary = accent; // Alias for primary color
+  // Primary Palette (Soft Blue) - DOMINANT
+  static const primary = Color(0xFF5C9DFF); // Soft Blue
+  static const primaryDark = Color(0xFF3A7BC8);
+  static const primaryLight = Color(0xFFE3F0FF);
 
-  static const lightBackground = Color(0xFFF9F9F9);
+  // Secondary/Action Colors
+  static const accent = Color(
+    0xFF00BFA5,
+  ); // Teal/Tosca for generic accents/actions
+  static const actionColor = accent;
+
+  // Gender Colors
+  static const femalePink = Color(0xFFFF9AA2); // ONLY for female indicators
+  static const maleBlue = Color(0xFF90CAF9); // ONLY for male indicators
+  static const pinkLight = Color(0xFFFFF0F1);
+
+  // Status Colors
+  static const success = Color(0xFF4CAF50);
+  static const warning = Color(0xFFFFC107);
+  static const error = Color(0xFFE57373);
+  static const info = Color(0xFF64B5F6);
+
+  static const lightBackground = Color(0xFFF8FAFC); // Cool gray/white
   static const lightSurface = Colors.white;
-  static const lightTextPrimary = Color(0xFF111111);
-  static const lightTextSecondary = Color(0xFF7D7D7D);
-  static const lightBorder = Color(0xFFE8E8E8);
+  static const lightTextPrimary = Color(0xFF2D3748);
+  static const lightTextSecondary = Color(0xFF718096);
+  static const lightBorder = Color(0xFFE2E8F0);
 
-  static const darkBackground = Color(0xFF111111);
-  static const darkSurface = Color(0xFF1C1C1C);
-  static const darkTextPrimary = Color(0xFFF5F5F5);
-  static const darkTextSecondary = Color(0xFFA0A0A0);
-  static const darkBorder = Color(0xFF2A2A2A);
+  // Dark Mode Support (Optional but good to have)
+  static const darkBackground = Color(0xFF1A202C);
+  static const darkSurface = Color(0xFF2D3748);
+  static const darkTextPrimary = Color(0xFFF7FAFC);
+  static const darkTextSecondary = Color(0xFFA0AEC0);
+  static const darkBorder = Color(0xFF4A5568);
 
-  static const successLight = Color(0xFFC8FCE3);
-  static const successDark = Color(0xFF2A4F3B);
+  static const successLight = Color(0xFFC6F6D5);
+  static const successDark = Color(0xFF22543D);
 
-  static const warningLight = Color(0xFFFFF2C4);
-  static const warningDark = Color(0xFF4D4622);
+  static const warningLight = Color(0xFFFEFCBF);
+  static const warningDark = Color(0xFF744210);
 }

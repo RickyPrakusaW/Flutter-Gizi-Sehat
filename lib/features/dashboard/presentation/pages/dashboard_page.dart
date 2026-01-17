@@ -1,247 +1,229 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
+import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
 
-/// Halaman utama dashboard beranda
-/// Menampilkan header, card chat asisten, list anak-anak, dan aksi cepat
 class DashboardPage extends StatelessWidget {
-  /// Callback untuk navigasi ke tab tertentu (0=Beranda, 1=Tumbuh, 2=Menu, 3=Asisten, 4=Profil)
   final Function(int)? onNavigateToTab;
 
   const DashboardPage({super.key, this.onNavigateToTab});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // Get user data from provider
+    final auth = context.watch<AuthProvider>();
+    final user = auth.userModel;
+    final userName = user?.name ?? 'Parents';
+    final userPhoto = user?.profileImage;
 
-    return SafeArea(
-      child: SingleChildScrollView(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F9FC), // Light background
+      body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header dengan judul aplikasi
-            _buildHeader(theme),
-            // Card promosi chat dengan asisten gizi
-            _buildChatAssistantCard(context, theme),
-            // Section list anak-anak yang terdaftar
-            _buildMyChildrenSection(context, theme),
-            // Section aksi cepat (4 card shortcut)
-            _buildQuickActionsSection(context, theme),
-            const SizedBox(height: 24),
+            // 1. Header Blue overlapping
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                _buildHeaderBackground(context, userName, userPhoto),
+                Positioned(
+                  bottom: -60,
+                  left: 20,
+                  right: 20,
+                  child: _buildChildrenProfileCard(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 80), // Space for matching overlap
+            // 2. Menu Icons
+            _buildMenuGrid(context),
+
+            // 3. Popular Thread
+            _buildSectionHeader('Popular thread', onViewAll: () {}),
+            _buildPopularThreadList(),
+
+            // 4. Newest Article
+            _buildSectionHeader('Newest article', onViewAll: () {}),
+            _buildNewestArticleList(),
+
+            const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
 
-  /// Membangun header dengan judul "GiziSehat" dan subtitle
-  Widget _buildHeader(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-      child: Column(
-        children: [
-          Text(
-            'GiziSehat',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Asisten Gizi Keluarga',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Membangun card promosi chat dengan asisten gizi (warna biru)
-  /// Ketika diklik, navigasi ke tab Asisten (index 3)
-  Widget _buildChatAssistantCard(BuildContext context, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: InkWell(
-        onTap: () {
-          onNavigateToTab?.call(3);
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: const Color(0xFFE3F2FD),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2196F3),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.smart_toy_outlined,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Chat dengan Asisten Gizi',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1976D2),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Konsultasi seputar nutrisi & tumbuh kembang',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.blue.shade700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: Color(0xFF1976D2),
-                size: 16,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Membangun section untuk menampilkan list anak-anak yang terdaftar
-  /// Termasuk card untuk setiap anak dan tombol tambah anak
-  Widget _buildMyChildrenSection(BuildContext context, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Anak-anak Saya',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildChildCard(
-            theme: theme,
-            name: 'Sari',
-            age: '8 bulan',
-            status: 'Normal',
-            statusColor: AppColors.accent,
-            checkDate: 'Cek: 3 hari lagi',
-          ),
-          const SizedBox(height: 12),
-          _buildChildCard(
-            theme: theme,
-            name: 'Budi',
-            age: '2 tahun 4 bulan',
-            status: 'Berisiko',
-            statusColor: Colors.orange,
-            checkDate: 'Cek: Minggu depan',
-          ),
-          const SizedBox(height: 12),
-          _buildAddChildButton(context, theme),
-        ],
-      ),
-    );
-  }
-
-  /// Membangun card untuk menampilkan informasi satu anak
-  /// Menampilkan: icon, nama, umur, badge status (Normal/Berisiko), dan jadwal cek
-  Widget _buildChildCard({
-    required ThemeData theme,
-    required String name,
-    required String age,
-    required String status,
-    required Color statusColor,
-    required String checkDate,
-  }) {
+  Widget _buildHeaderBackground(
+    BuildContext context,
+    String name,
+    String? photoUrl,
+  ) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.brightness == Brightness.dark
-              ? AppColors.darkBorder
-              : AppColors.lightBorder,
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(24, 60, 24, 100),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF5C9DFF), // Soft Blue
+            Color(0xFF3A7BC8), // Darker Blue
+          ],
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.child_care, color: AppColors.accent),
-          ),
-          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  name,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                  'Hi, $name',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  age,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.grey.shade600,
+                const Text(
+                  'How was your day?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          GestureDetector(
+            onTap: () {
+              // Navigate to Profile Screen
+              Navigator.pushNamed(context, '/profile');
+              // Assuming /profile route exists or use MaterialPageRoute to ProfilePage() if strictly needed
+              // But standard way:
+              // Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfilePage()));
+            },
+            child: CircleAvatar(
+              radius: 26,
+              backgroundColor: Colors.white.withOpacity(0.3),
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: Colors.white.withOpacity(0.2),
+                backgroundImage: photoUrl != null
+                    ? NetworkImage(photoUrl)
+                    : null,
+                child: photoUrl == null
+                    ? const Icon(Icons.person, color: Colors.white)
+                    : null,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChildrenProfileCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF5C9DFF).withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Children Profile',
+            style: TextStyle(
+              color: Color(0xFF5C9DFF),
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
             children: [
+              // Child Avatar
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: AppColors.femalePink.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.face_3,
+                    color: AppColors.femalePink,
+                    size: 36,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Child Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Haylie Westervelt', // Placeholder name
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Color(0xFF2D3748),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '1 year 6 Months 24 days',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Status Badge
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.2),
+                  color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
-                  status,
+                child: const Text(
+                  'Normal',
                   style: TextStyle(
+                    color: Color(0xFF2E7D32),
+                    fontWeight: FontWeight.bold,
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: statusColor,
                   ),
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                checkDate,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.arrow_circle_right_outlined,
+                color: Color(0xFF5C9DFF),
+                size: 28,
               ),
             ],
           ),
@@ -250,182 +232,326 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  /// Membangun tombol untuk menambahkan anak baru
-  /// TODO: Implementasi navigasi ke halaman tambah anak
-  Widget _buildAddChildButton(BuildContext context, ThemeData theme) {
-    return InkWell(
-      onTap: () {
-        // TODO: Navigate to add child screen
+  Widget _buildMenuGrid(BuildContext context) {
+    final menus = [
+      {
+        'icon': Icons.pregnant_woman,
+        'label': "Mom's\nHealth",
+        'color': const Color(0xFF5C9DFF),
+        'onTap': () {},
       },
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: theme.brightness == Brightness.dark
-                ? AppColors.darkBorder
-                : AppColors.lightBorder,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.add_circle_outline,
-              color: Colors.grey.shade400,
-              size: 20,
+      {
+        'icon': Icons.vaccines,
+        'label': 'Vaccine\nSchedule',
+        'color': const Color(0xFF5C9DFF),
+        'onTap': () {},
+      },
+      {
+        'icon': Icons.sentiment_satisfied_alt,
+        'label': 'Stress\nMgmt',
+        'color': const Color(0xFF5C9DFF),
+        'onTap': () {},
+      },
+      {
+        'icon': Icons.contact_phone,
+        'label': 'Emergency\nContacts',
+        'color': const Color(0xFF5C9DFF),
+        'onTap': () {},
+      },
+      {
+        'icon': Icons.quiz,
+        'label': 'Fun\nQuiz',
+        'color': const Color(0xFF5C9DFF),
+        'onTap': () {},
+      },
+    ];
+
+    return SizedBox(
+      height: 110,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        scrollDirection: Axis.horizontal,
+        itemCount: menus.length,
+        separatorBuilder: (ctx, i) => const SizedBox(width: 16),
+        itemBuilder: (ctx, i) {
+          final menu = menus[i];
+          return GestureDetector(
+            onTap: menu['onTap'] as VoidCallback?,
+            child: Column(
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF5C9DFF).withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    menu['icon'] as IconData,
+                    color: menu['color'] as Color,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  menu['label'] as String,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF4A5568),
+                    height: 1.2,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(
-              'Tambah Anak',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade700,
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  /// Membangun section aksi cepat dengan 4 card dalam grid 2x2:
-  /// - Cek Pertumbuhan, Skrining Risiko, Jadwal Posyandu, Chat Asisten
-  Widget _buildQuickActionsSection(BuildContext context, ThemeData theme) {
+  Widget _buildSectionHeader(String title, {VoidCallback? onViewAll}) {
     return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Aksi Cepat',
-            style: theme.textTheme.titleLarge?.copyWith(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
               fontWeight: FontWeight.bold,
+              color: Color(0xFF2D3748),
             ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickActionCard(
-                  context: context,
-                  theme: theme,
-                  icon: Icons.show_chart,
-                  label: 'Cek Pertumbuhan',
-                  iconColor: AppColors.accent,
-                  onTap: () => onNavigateToTab?.call(1),
+          if (onViewAll != null)
+            GestureDetector(
+              onTap: onViewAll,
+              child: const Text(
+                'See all',
+                style: TextStyle(
+                  color: Color(0xFF5C9DFF),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildQuickActionCard(
-                  context: context,
-                  theme: theme,
-                  icon: Icons.warning_amber_rounded,
-                  label: 'Skrining Risiko',
-                  iconColor: Colors.orange,
-                  onTap: () {}, // TODO
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickActionCard(
-                  context: context,
-                  theme: theme,
-                  icon: Icons.calendar_month,
-                  label: 'Jadwal Makan',
-                  iconColor: Colors.orange,
-                  onTap: () =>
-                      Navigator.pushNamed(context, '/nutrition-schedule'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildQuickActionCard(
-                  context: context,
-                  theme: theme,
-                  icon: Icons.medical_services,
-                  label: 'Konsultasi',
-                  iconColor: Colors.purple,
-                  onTap: () => Navigator.pushNamed(context, '/doctor-list'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickActionCard(
-                  context: context,
-                  theme: theme,
-                  icon: Icons.shopping_bag,
-                  label: 'Toko Sehat',
-                  iconColor: Colors.green,
-                  onTap: () => Navigator.pushNamed(context, '/marketplace'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildQuickActionCard(
-                  context: context,
-                  theme: theme,
-                  icon: Icons.smart_toy_outlined,
-                  label: 'Chat Asisten',
-                  iconColor: const Color(0xFF2196F3),
-                  onTap: () => onNavigateToTab?.call(3),
-                ),
-              ),
-            ],
-          ),
+            ),
         ],
       ),
     );
   }
 
-  /// Membangun card untuk aksi cepat individual
-  /// Masing-masing card memiliki icon dan label, dapat diklik untuk navigasi
-  Widget _buildQuickActionCard({
-    required BuildContext context,
-    required ThemeData theme,
-    required IconData icon,
-    required String label,
-    required Color iconColor,
-    required VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: theme.brightness == Brightness.dark
-                ? AppColors.darkBorder
-                : AppColors.lightBorder,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 32, color: iconColor),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w500,
+  Widget _buildPopularThreadList() {
+    return SizedBox(
+      height: 190,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        scrollDirection: Axis.horizontal,
+        itemCount: 3,
+        separatorBuilder: (ctx, i) => const SizedBox(width: 16),
+        itemBuilder: (ctx, i) {
+          return Container(
+            width: 280,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFEDF2F7)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 12,
+                      // Placeholder avatar
+                      backgroundColor: Colors.grey,
+                      child: Icon(Icons.person, size: 16, color: Colors.white),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Maria Aminoff',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      'Parents • 4 Nov 2024',
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0F2F1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Parenting',
+                    style: TextStyle(
+                      color: Color(0xFF00897B),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'How to deal with children who have temper tantrums?',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Color(0xFF2D3748),
+                    height: 1.3,
+                  ),
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.comment_outlined,
+                      size: 14,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '12491',
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 11,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Icon(
+                      Icons.bar_chart,
+                      size: 14,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '191',
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildNewestArticleList() {
+    return SizedBox(
+      height: 160,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        scrollDirection: Axis.horizontal,
+        itemCount: 3,
+        separatorBuilder: (ctx, i) => const SizedBox(width: 16),
+        itemBuilder: (ctx, i) {
+          return Container(
+            width: 240,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(20),
+              image: const DecorationImage(
+                image: NetworkImage(
+                  'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=60',
+                ),
+                fit: BoxFit.cover,
               ),
             ),
-          ],
-        ),
+            child: Stack(
+              children: [
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.8),
+                          Colors.transparent,
+                        ],
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF5C9DFF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'Nutrition',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Healthy Food for Kids',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/dashboard_page.dart';
-import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/growth_page.dart';
-import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/nutrition_page.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/child_page.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/moms_page.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/assistant_page.dart';
-import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/profile_page.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/community_page.dart';
 
 /// Screen utama dengan bottom navigation bar
-/// Mengatur 5 halaman utama: Beranda, Tumbuh, Menu, Asisten, Profil
+/// Mengatur 5 halaman utama: Beranda, Child, Moms, Asisten, Komunitas
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  /// Index tab yang sedang aktif (0=Beranda, 1=Tumbuh, 2=Menu, 3=Asisten, 4=Profil)
+  /// Index tab yang sedang aktif
   int _currentIndex = 0;
 
   /// List semua halaman yang ditampilkan berdasarkan tab
@@ -27,28 +27,28 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       },
     ),
-    const GrowthPage(),
-    const NutritionPage(),
+    const ChildPage(),
+    const MomsPage(),
     const AssistantPage(),
-    const ProfilePage(),
+    const CommunityPage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: theme.bottomNavigationBarTheme.backgroundColor ??
+          color:
+              theme.bottomNavigationBarTheme.backgroundColor ??
               theme.colorScheme.surface,
           border: Border(
             top: BorderSide(
-              color: theme.brightness == Brightness.dark
-                  ? const Color(0xFF2A2A2A)
-                  : const Color(0xFFE0E0E0),
+              color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0),
               width: 1,
             ),
           ),
@@ -60,23 +60,23 @@ class _HomeScreenState extends State<HomeScreen> {
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
-              label: 'Beranda',
+              label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.show_chart_outlined),
-              label: 'Tumbuh',
+              icon: Icon(Icons.child_care),
+              label: 'Child',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.restaurant_menu_outlined),
-              label: 'Menu',
+              icon: Icon(Icons.pregnant_woman),
+              label: 'Moms',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.smart_toy_outlined),
               label: 'Asisten',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              label: 'Profil',
+              icon: Icon(Icons.people_outline),
+              label: 'Community',
             ),
           ],
         ),
