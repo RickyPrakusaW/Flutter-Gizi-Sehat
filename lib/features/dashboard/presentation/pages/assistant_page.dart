@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:gizi_sehat_mobile_app/core/services/gemini_service.dart';
 
 /// Model untuk pesan chat
 class ChatMessage {
@@ -62,11 +64,7 @@ class _AssistantPageState extends State<AssistantPage> {
       text: 'Anak susah makan sayur',
       icon: Icons.warning_amber_rounded,
     ),
-    QuickQuestion(
-      id: 'budget',
-      text: 'Menu sehat murah',
-      icon: Icons.message,
-    ),
+    QuickQuestion(id: 'budget', text: 'Menu sehat murah', icon: Icons.message),
   ];
 
   @override
@@ -90,7 +88,7 @@ class _AssistantPageState extends State<AssistantPage> {
         ChatMessage(
           id: 'welcome',
           content:
-              'Halo! Saya asisten gizi virtual GiziSehat. Saya siap membantu Anda dengan pertanyaan seputar gizi dan tumbuh kembang anak. Ada yang bisa saya bantu hari ini?',
+              'Halo Bunda! 👋 Saya AIza, asisten pintar GiziSehat.\n\nSaya bisa bantu jawab pertanyaan soal MPASI, pola makan anak, atau tips gizi keluarga. Mau tanya apa hari ini?',
           isFromUser: false,
           timestamp: DateTime.now(),
         ),
@@ -119,13 +117,19 @@ class _AssistantPageState extends State<AssistantPage> {
     _messageController.clear();
     _scrollToBottom();
 
-    // Simulasi delay untuk memberikan efek loading
-    await Future.delayed(const Duration(seconds: 1));
+    // Simulasi delay untuk efek UI (opsional, karena await Gemini sudah delay)
+    // await Future.delayed(const Duration(seconds: 1)); // Bisa dihapus jika ingin secepat mungkin
 
-    // Response default
-    const aiResponse = 'Maaf, fitur AI Asisten Gizi saat ini sedang tidak tersedia. '
-        'Silakan hubungi dokter atau ahli gizi untuk konsultasi lebih lanjut.';
+    String aiResponse = '';
+    try {
+      final geminiService = GeminiService();
+      aiResponse = await geminiService.sendMessage(message);
+    } catch (e) {
+      aiResponse =
+          'Maaf, terjadi kesalahan saat menghubungi AI. Silakan coba lagi.';
+    }
 
+    // Response dari Gemini
     if (mounted) {
       setState(() {
         _messages.add(
@@ -141,7 +145,6 @@ class _AssistantPageState extends State<AssistantPage> {
       _scrollToBottom();
     }
   }
-
 
   /// Handle quick question button click
   void _handleQuickQuestion(QuickQuestion question) {
@@ -182,9 +185,7 @@ class _AssistantPageState extends State<AssistantPage> {
           _buildQuickQuestionsSection(theme, isDark),
 
           // Chat Messages Section
-          Expanded(
-            child: _buildChatMessages(theme, isDark),
-          ),
+          Expanded(child: _buildChatMessages(theme, isDark)),
 
           // Input Bar Section
           _buildInputBar(theme, isDark),
@@ -193,67 +194,106 @@ class _AssistantPageState extends State<AssistantPage> {
     );
   }
 
-  /// Membangun header dengan icon robot dan judul
+  /// Membangun header dengan tema Biru
   Widget _buildHeader(ThemeData theme, bool isDark) {
-    return SafeArea(
-      bottom: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          border: Border(
-            bottom: BorderSide(
-              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-              width: 1,
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        50,
+        20,
+        20,
+      ), // Top padding for status bar
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.blue.shade700, Colors.blue.shade500],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Icon Robot
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withOpacity(0.3)),
+            ),
+            child: const Icon(
+              Icons.smart_toy_rounded,
+              color: Colors.white,
+              size: 28,
             ),
           ),
-        ),
-        child: Row(
-          children: [
-            // Icon Robot
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.smart_toy_outlined,
-                color: AppColors.accent,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            // Title dan Subtitle
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Asisten Gizi AI',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? AppColors.darkTextPrimary
-                          : AppColors.lightTextPrimary,
-                    ),
+          const SizedBox(width: 16),
+          // Title dan Subtitle
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Asisten Gizi AI',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  Text(
-                    'Dokter Gizi Virtual',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark
-                          ? AppColors.darkTextSecondary
-                          : AppColors.lightTextSecondary,
-                    ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Siap membantu 24/7',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w400,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          // Status Dot
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.greenAccent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  'Online',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -309,9 +349,7 @@ class _AssistantPageState extends State<AssistantPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isDark
-              ? AppColors.darkSurface
-              : Colors.grey.shade100,
+          color: isDark ? AppColors.darkSurface : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
@@ -321,11 +359,7 @@ class _AssistantPageState extends State<AssistantPage> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              question.icon,
-              size: 16,
-              color: AppColors.accent,
-            ),
+            Icon(question.icon, size: 16, color: AppColors.accent),
             const SizedBox(width: 6),
             Text(
               question.text,
@@ -444,82 +478,92 @@ class _AssistantPageState extends State<AssistantPage> {
     final isUser = message.isFromUser;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Row(
-        mainAxisAlignment:
-            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start, // Align to top
         children: [
           if (!isUser) ...[
-            // Avatar AI (hanya untuk pesan AI)
+            // Avatar AI (Robot) with Blue theme
             Container(
-              width: 32,
-              height: 32,
+              margin: const EdgeInsets.only(right: 8, top: 2),
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.15),
+                color: Colors.white,
                 shape: BoxShape.circle,
+                border: Border.all(color: Colors.blue.shade100),
+                boxShadow: [
+                  BoxShadow(color: Colors.blue.withOpacity(0.1), blurRadius: 4),
+                ],
               ),
-              child: const Icon(
-                Icons.smart_toy_outlined,
-                size: 18,
-                color: AppColors.accent,
+              child: Icon(
+                Icons.smart_toy_rounded,
+                size: 20,
+                color: Colors.blue.shade600,
               ),
             ),
-            const SizedBox(width: 8),
           ],
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
+                gradient: isUser
+                    ? LinearGradient(
+                        colors: [Colors.blue.shade600, Colors.blue.shade500],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null,
                 color: isUser
-                    ? AppColors.accent
-                    : (isDark
-                        ? AppColors.darkSurface
-                        : Colors.grey.shade200),
+                    ? null
+                    : (isDark ? const Color(0xFF2C2C2C) : Colors.white),
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(isUser ? 16 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 16),
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isUser ? 20 : 4),
+                  bottomRight: Radius.circular(isUser ? 4 : 20),
                 ),
+                boxShadow: [
+                  if (!isUser) // Shadow for AI bubble
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (!isUser)
-                    Text(
-                      'Asisten Gizi',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? AppColors.darkTextSecondary
-                            : AppColors.lightTextSecondary,
+                  MarkdownBody(
+                    data: message.content,
+                    styleSheet: MarkdownStyleSheet(
+                      p: TextStyle(
+                        fontSize: 15,
+                        height: 1.5,
+                        color: isUser
+                            ? Colors.white
+                            : (isDark ? Colors.white : Colors.black87),
+                      ),
+                      strong: const TextStyle(fontWeight: FontWeight.bold),
+                      listBullet: TextStyle(
+                        color: isUser
+                            ? Colors.white
+                            : (isDark ? Colors.white : Colors.black87),
                       ),
                     ),
-                  if (!isUser) const SizedBox(height: 4),
-                  Text(
-                    message.content,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.5,
-                      color: isUser
-                          ? Colors.white
-                          : (isDark
-                              ? AppColors.darkTextPrimary
-                              : AppColors.lightTextPrimary),
-                    ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     _formatTime(message.timestamp),
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 10,
                       color: isUser
-                          ? Colors.white.withOpacity(0.7)
-                          : (isDark
-                              ? AppColors.darkTextSecondary
-                              : AppColors.lightTextSecondary),
+                          ? Colors.white.withOpacity(0.8)
+                          : Colors.grey,
                     ),
                   ),
                 ],
@@ -564,9 +608,7 @@ class _AssistantPageState extends State<AssistantPage> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkSurface
-                      : Colors.grey.shade100,
+                  color: isDark ? AppColors.darkSurface : Colors.grey.shade100,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -584,9 +626,7 @@ class _AssistantPageState extends State<AssistantPage> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkSurface
-                      : Colors.grey.shade100,
+                  color: isDark ? AppColors.darkSurface : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: TextField(
@@ -619,32 +659,45 @@ class _AssistantPageState extends State<AssistantPage> {
             const SizedBox(width: 8),
             // Send Button
             InkWell(
-              onTap: _isLoading ? null : () {
-                _sendMessage(_messageController.text);
-              },
+              onTap: _isLoading
+                  ? null
+                  : () {
+                      _sendMessage(_messageController.text);
+                    },
               borderRadius: BorderRadius.circular(24),
               child: Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: _isLoading
-                      ? AppColors.accent.withOpacity(0.5)
-                      : AppColors.accent,
+                  gradient: LinearGradient(
+                    colors: _isLoading
+                        ? [Colors.grey, Colors.grey]
+                        : [Colors.blue.shade600, Colors.blue.shade400],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    if (!_isLoading)
+                      BoxShadow(
+                        color: Colors.blue.withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                  ],
                 ),
                 child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
                         ),
                       )
                     : const Icon(
-                        Icons.send,
+                        Icons.send_rounded,
                         color: Colors.white,
-                        size: 20,
+                        size: 22,
                       ),
               ),
             ),

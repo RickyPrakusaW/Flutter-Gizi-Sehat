@@ -97,9 +97,9 @@ class _ChildPageState extends State<ChildPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              const Row(
                 children: [
-                  const Flexible(
+                  Flexible(
                     child: Text(
                       'Haylie Westervelt',
                       overflow: TextOverflow.ellipsis,
@@ -110,7 +110,7 @@ class _ChildPageState extends State<ChildPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Text(
                     '- Normal',
                     style: TextStyle(
@@ -505,7 +505,7 @@ class _ChildPageState extends State<ChildPage> {
                       ],
                     ),
                   ),
-                  Text(
+                  const Text(
                     'See all',
                     style: TextStyle(
                       color: AppColors.primary,
@@ -584,7 +584,7 @@ class _ChildPageState extends State<ChildPage> {
                       ],
                     ),
                   ),
-                  Text(
+                  const Text(
                     'See recommendation',
                     style: TextStyle(
                       color: AppColors.primary,
@@ -730,10 +730,10 @@ class _ChildPageState extends State<ChildPage> {
           ),
           child: Column(
             children: [
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Current date  06/11/2024',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
@@ -773,7 +773,7 @@ class _ChildPageState extends State<ChildPage> {
     final isProtein = type == 'Proteins';
 
     // Theme Colors
-    final Color progressColor = const Color(0xFF2196F3);
+    const Color progressColor = Color(0xFF2196F3);
 
     // Content Data
     String title = '$type recommendation';
@@ -900,7 +900,7 @@ class _ChildPageState extends State<ChildPage> {
                       ],
                     ),
                   ),
-                  Text(
+                  const Text(
                     'See recommendation',
                     style: TextStyle(
                       color: AppColors.primary,

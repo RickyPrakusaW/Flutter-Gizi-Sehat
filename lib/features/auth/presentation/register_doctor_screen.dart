@@ -182,7 +182,7 @@ class _RegisterDoctorScreenState extends State<RegisterDoctorScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                _SectionTitle('Informasi Akun'),
+                const _SectionTitle('Informasi Akun'),
                 const SizedBox(height: 16),
 
                 // Nama
@@ -216,11 +216,13 @@ class _RegisterDoctorScreenState extends State<RegisterDoctorScreen> {
                   ),
                   keyboardType: TextInputType.phone,
                   validator: (v) {
-                    if (v == null || v.isEmpty)
+                    if (v == null || v.isEmpty) {
                       return 'Nomor Telepon wajib diisi';
+                    }
                     final phoneRegex = RegExp(r'^[0-9]{10,13}$');
-                    if (!phoneRegex.hasMatch(v))
+                    if (!phoneRegex.hasMatch(v)) {
                       return 'Nomor telepon tidak valid!';
+                    }
                     return null;
                   },
                 ),
@@ -271,7 +273,7 @@ class _RegisterDoctorScreenState extends State<RegisterDoctorScreen> {
                 ),
 
                 const SizedBox(height: 32),
-                _SectionTitle('Data Profesional'),
+                const _SectionTitle('Data Profesional'),
                 const SizedBox(height: 16),
 
                 Row(

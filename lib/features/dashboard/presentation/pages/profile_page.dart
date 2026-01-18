@@ -29,11 +29,11 @@ class ProfilePage extends StatelessWidget {
 
     final theme = Theme.of(context);
     // Force light theme usage for consistent look as requested (dark mode removed)
-    final headingColor = AppColors.lightTextPrimary;
-    final subtitleColor = AppColors.lightTextSecondary;
-    final sectionBg = Colors.white;
-    final borderColor = AppColors.lightBorder;
-    final innerCardBg = const Color(0xFFF9F9F9);
+    const headingColor = AppColors.lightTextPrimary;
+    const subtitleColor = AppColors.lightTextSecondary;
+    const sectionBg = Colors.white;
+    const borderColor = AppColors.lightBorder;
+    const innerCardBg = Color(0xFFF9F9F9);
     final avatarBg = AppColors.accent.withOpacity(0.15);
 
     // Services
@@ -525,7 +525,7 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
           if (uploadError != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(uploadError!), // Show exact error
+                content: Text(uploadError), // Show exact error
                 backgroundColor: Colors.orange,
               ),
             );

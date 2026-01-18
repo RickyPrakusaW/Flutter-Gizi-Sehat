@@ -78,7 +78,7 @@ class DoctorListScreen extends StatelessWidget {
                     : Colors.grey.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Text(
+              child: const Text(
                 isOnline ? "Online" : "Offline",
                 style: TextStyle(
                   color: isOnline ? Colors.green : Colors.grey,

@@ -197,7 +197,7 @@ class _IndonesianLocationSelectorState
               vertical: 12,
             ),
           ),
-          value: _selectedProvince,
+          initialValue: _selectedProvince,
           isExpanded: true,
           items: _provinces.map((province) {
             return DropdownMenuItem(
@@ -233,7 +233,7 @@ class _IndonesianLocationSelectorState
               vertical: 12,
             ),
           ),
-          value: _selectedCity,
+          initialValue: _selectedCity,
           isExpanded: true,
           items: _cities.map((city) {
             return DropdownMenuItem(
@@ -272,7 +272,7 @@ class _IndonesianLocationSelectorState
               vertical: 12,
             ),
           ),
-          value: _selectedDistrict,
+          initialValue: _selectedDistrict,
           isExpanded: true,
           items: _districts.map((district) {
             return DropdownMenuItem(

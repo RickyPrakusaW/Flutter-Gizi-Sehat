@@ -204,7 +204,7 @@ class AdminDashboardScreen extends StatelessWidget {
         subtitle: Text(isActive ? 'Status: Aktif' : 'Status: Nonaktif/Ditolak'),
         trailing: Switch(
           value: isActive,
-          activeColor: Colors.green,
+          activeThumbColor: Colors.green,
           onChanged: (val) {
             if (val) {
               _approveDoctor(context, user.id); // Re-activate

@@ -124,16 +124,19 @@ class _RegisterParentScreenState extends State<RegisterParentScreen> {
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) return 'Password harus diisi!';
     if (value.length < 8) return 'Password minimal 8 karakter!';
-    if (!value.contains(RegExp(r'[A-Z]')))
+    if (!value.contains(RegExp(r'[A-Z]'))) {
       return 'Password harus mengandung huruf besar!';
-    if (!value.contains(RegExp(r'[0-9]')))
+    }
+    if (!value.contains(RegExp(r'[0-9]'))) {
       return 'Password harus mengandung angka!';
+    }
     return null;
   }
 
   String? _validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty)
+    if (value == null || value.isEmpty) {
       return 'Konfirmasi password harus diisi!';
+    }
     if (value != _passCtrl.text) return 'Password tidak cocok!';
     return null;
   }
