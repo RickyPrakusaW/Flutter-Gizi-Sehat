@@ -116,9 +116,9 @@ class GrowthResultScreen extends StatelessWidget {
                     style: TextStyle(
                         fontWeight: FontWeight.bold, color: Colors.black87),
                   ),
-                  Text(
+                  const Text(
                     'Rekomendasi berat badan anak seharusnya 8.9 kg.', // Logic placeholder
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -153,7 +153,7 @@ class GrowthResultScreen extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.chevron_right, size: 16, color: Colors.white),
+          const Icon(Icons.chevron_right, size: 16, color: Colors.white),
           const SizedBox(width: 8),
           SizedBox(
               width: 120,
@@ -280,9 +280,10 @@ class _ChartSection extends StatelessWidget {
             interval: 1,
             getTitlesWidget: (value, meta) {
               final val = value.toInt();
-              if (val % 2 == 0)
+              if (val % 2 == 0) {
                 return Text('$val',
                     style: const TextStyle(fontSize: 10)); // 0, 2, 4
+              }
               return const SizedBox.shrink();
             },
           ),
@@ -296,8 +297,8 @@ class _ChartSection extends StatelessWidget {
                 Text('${value.toInt()}', style: const TextStyle(fontSize: 10)),
           ),
         ),
-        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(
           show: true, border: Border.all(color: Colors.grey.shade300)),
@@ -311,49 +312,49 @@ class _ChartSection extends StatelessWidget {
             spots: makeCurve(isWeight ? 4 : 8),
             isCurved: true,
             color: Colors.red.shade900,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             barWidth: 1),
         // +2 SD
         LineChartBarData(
             spots: makeCurve(isWeight ? 2.5 : 5),
             isCurved: true,
             color: Colors.red,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             barWidth: 1),
         // +1 SD
         LineChartBarData(
             spots: makeCurve(isWeight ? 1.2 : 2.5),
             isCurved: true,
             color: Colors.orange,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             barWidth: 1),
         // Median
         LineChartBarData(
             spots: makeCurve(0),
             isCurved: true,
             color: Colors.green,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             barWidth: 2),
         // -1 SD
         LineChartBarData(
             spots: makeCurve(isWeight ? -1.2 : -2.5),
             isCurved: true,
             color: Colors.orange,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             barWidth: 1),
         // -2 SD
         LineChartBarData(
             spots: makeCurve(isWeight ? -2.5 : -5),
             isCurved: true,
             color: Colors.red,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             barWidth: 1),
         // -3 SD
         LineChartBarData(
             spots: makeCurve(isWeight ? -4 : -8),
             isCurved: true,
             color: Colors.red.shade900,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             barWidth: 1),
 
         // USER POINT

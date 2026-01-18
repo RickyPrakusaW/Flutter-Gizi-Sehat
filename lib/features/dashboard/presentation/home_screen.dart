@@ -3,7 +3,7 @@ import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/dash
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/child_page.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/moms_page.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/assistant_page.dart';
-import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/community_page.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor/presentation/pages/doctor_list_screen.dart';
 
 /// Screen utama dengan bottom navigation bar
 /// Mengatur 5 halaman utama: Beranda, Child, Moms, Asisten, Komunitas
@@ -20,18 +20,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// List semua halaman yang ditampilkan berdasarkan tab
   List<Widget> get _pages => [
-    DashboardPage(
-      onNavigateToTab: (index) {
-        setState(() {
-          _currentIndex = index;
-        });
-      },
-    ),
-    const ChildPage(),
-    const MomsPage(),
-    const AssistantPage(),
-    const CommunityPage(),
-  ];
+        DashboardPage(
+          onNavigateToTab: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+        ),
+        const ChildPage(),
+        const MomsPage(),
+        const AssistantPage(),
+        const DoctorListScreen(),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color:
-              theme.bottomNavigationBarTheme.backgroundColor ??
+          color: theme.bottomNavigationBarTheme.backgroundColor ??
               theme.colorScheme.surface,
           border: Border(
             top: BorderSide(
@@ -75,8 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Asisten',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.people_outline),
-              label: 'Community',
+              icon: Icon(Icons.group_outlined),
+              label: 'Konsultasi',
             ),
           ],
         ),

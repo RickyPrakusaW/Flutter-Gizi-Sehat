@@ -7,12 +7,8 @@ import 'dart:io';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
 import 'package:gizi_sehat_mobile_app/app_router.dart';
-import 'package:gizi_sehat_mobile_app/widgets/status_badge.dart';
-import 'package:gizi_sehat_mobile_app/features/dashboard/data/models/child_model.dart';
-import 'package:gizi_sehat_mobile_app/features/dashboard/data/services/child_service.dart';
-import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/widgets/indonesian_location_selector.dart';
 import 'package:gizi_sehat_mobile_app/core/services/cloudinary_service.dart';
-import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/widgets/child_dialogs.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/widgets/indonesian_location_selector.dart'; // Restored
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -32,11 +28,12 @@ class ProfilePage extends StatelessWidget {
     const subtitleColor = AppColors.lightTextSecondary;
     const sectionBg = Colors.white;
     const borderColor = AppColors.lightBorder;
-    const innerCardBg = Color(0xFFF9F9F9);
     final avatarBg = AppColors.accent.withOpacity(0.15);
 
     // Services
-    final childService = ChildService();
+    // Services
+    // final childService = ChildService(); // Removed
+
     // Get current user ID
     final uid = user?.id;
 
@@ -68,120 +65,7 @@ class ProfilePage extends StatelessWidget {
       );
     }
 
-    void showAddChildDialog() {
-      if (uid == null) return;
-      showDialog(
-        context: context,
-        builder: (context) => AddEditChildDialog(userId: uid),
-      );
-    }
-
-    void showEditChildDialog(ChildModel child) {
-      if (uid == null) return;
-      showDialog(
-        context: context,
-        builder: (context) => AddEditChildDialog(userId: uid, child: child),
-      );
-    }
-
-    // --- Widgets ---
-
-    Widget childTile(ChildModel child) {
-      return Container(
-        decoration: BoxDecoration(
-          color: innerCardBg,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Child Avatar
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: child.gender == 'Perempuan'
-                    ? AppColors.femalePink.withOpacity(0.2)
-                    : Colors.blue.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.face, // Improved icon
-                color: child.gender == 'Perempuan'
-                    ? AppColors.femalePink
-                    : Colors.blue,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            // Child Information
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          child.name,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: headingColor,
-                          ),
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          StatusBadge(
-                            label: child.status,
-                            isWarning: child.status != 'Normal',
-                          ),
-                          const SizedBox(width: 8),
-                          GestureDetector(
-                            onTap: () => showEditChildDialog(child),
-                            child: Icon(
-                              Icons.edit_outlined,
-                              size: 18,
-                              color: headingColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${child.gender} • ${child.ageString}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      color: subtitleColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    Widget sectionCard({required Widget child}) {
-      return Container(
-        decoration: BoxDecoration(
-          color: sectionBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor, width: 1),
-        ),
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.only(bottom: 24),
-        child: child,
-      );
-    }
+    // Child management helpers removed
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC), // Consistent background
@@ -247,7 +131,7 @@ class ProfilePage extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 userName,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: headingColor,
@@ -256,16 +140,16 @@ class ProfilePage extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 userEmail,
-                style: TextStyle(fontSize: 14, color: subtitleColor),
+                style: const TextStyle(fontSize: 14, color: subtitleColor),
               ),
               const SizedBox(height: 12),
               GestureDetector(
                 onTap: showEditProfileDialog,
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.edit_outlined, size: 16, color: headingColor),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     Text(
                       'Edit Profil',
                       style: TextStyle(
@@ -280,100 +164,7 @@ class ProfilePage extends StatelessWidget {
               const SizedBox(height: 24),
 
               // ===== KELOLA ANAK (REALTIME DATA) =====
-              if (uid != null)
-                sectionCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.tag_faces_outlined,
-                            color: headingColor,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Kelola Anak',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: headingColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // StreamBuilder for Realtime Updates
-                      StreamBuilder<List<ChildModel>>(
-                        stream: childService.getChildrenStream(uid),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-                          if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
-                          }
-                          final children = snapshot.data ?? [];
-                          if (children.isEmpty) {
-                            return Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 20,
-                                ),
-                                child: Text(
-                                  'Belum ada data anak.\nSilakan tambah data anak.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(color: subtitleColor),
-                                ),
-                              ),
-                            );
-                          }
-                          return Column(
-                            children: children
-                                .map((child) => childTile(child))
-                                .toList(),
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 8),
-                      // Add Child Button
-                      GestureDetector(
-                        onTap: showAddChildDialog,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: borderColor, width: 1),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 14,
-                            horizontal: 16,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.add, size: 18, color: headingColor),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Tambah Anak',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                  color: headingColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              // Kelola Anak section removed as per request
 
               // ===== Logout Button =====
               Container(
@@ -410,7 +201,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
+                    const Text(
                       'Anda akan keluar dari aplikasi ini',
                       style: TextStyle(fontSize: 13, color: subtitleColor),
                     ),
@@ -502,12 +293,13 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
     try {
       if (mounted) {
         await context.read<AuthProvider>().updateProfile(
-          name: _nameController.text.trim(),
-          photoUrl: photoUrl, // Will be null if upload failed or no new image
-          province: _selectedProvince,
-          city: _selectedCity,
-          district: _selectedDistrict,
-        );
+              name: _nameController.text.trim(),
+              photoUrl:
+                  photoUrl, // Will be null if upload failed or no new image
+              province: _selectedProvince,
+              city: _selectedCity,
+              district: _selectedDistrict,
+            );
 
         if (mounted) {
           Navigator.pop(context);
@@ -555,9 +347,8 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
                 backgroundImage: _imageFile != null
                     ? FileImage(_imageFile!)
                     : (widget.initialPhotoUrl != null
-                              ? NetworkImage(widget.initialPhotoUrl!)
-                              : null)
-                          as ImageProvider?,
+                        ? NetworkImage(widget.initialPhotoUrl!)
+                        : null) as ImageProvider?,
                 child: (_imageFile == null && widget.initialPhotoUrl == null)
                     ? const Icon(Icons.camera_alt, size: 30, color: Colors.grey)
                     : null,

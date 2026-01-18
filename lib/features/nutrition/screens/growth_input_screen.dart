@@ -207,9 +207,9 @@ class _GrowthInputScreenState extends State<GrowthInputScreen> {
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : Row(
+                      : const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Text(
                               'Hitung',
                               style: TextStyle(
@@ -279,10 +279,10 @@ class _GrowthInputScreenState extends State<GrowthInputScreen> {
                 width: 60,
                 height: 48,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF8BC34A),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF8BC34A),
                   borderRadius:
-                      const BorderRadius.horizontal(right: Radius.circular(4)),
+                      BorderRadius.horizontal(right: Radius.circular(4)),
                 ),
                 margin: const EdgeInsets.only(
                     left: 0), // Adjust if integrating to field

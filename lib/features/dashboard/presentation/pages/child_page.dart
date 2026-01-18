@@ -126,8 +126,9 @@ class _ChildPageState extends State<ChildPage> {
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return const SizedBox();
                   final children = snapshot.data ?? [];
-                  if (children.isEmpty)
+                  if (children.isEmpty) {
                     return const SizedBox(); // Handle empty in body
+                  }
 
                   // Determine selected child
                   ChildModel displayedChild;
@@ -358,7 +359,7 @@ class _ChildPageState extends State<ChildPage> {
                           style: const TextStyle(
                             color: Colors.black87,
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.bold,    
                           ),
                         ),
                       ),
@@ -1180,7 +1181,7 @@ class _ChildPageState extends State<ChildPage> {
                         value: progressValue,
                         strokeWidth: 12,
                         backgroundColor: Colors.blue.shade50,
-                        valueColor: AlwaysStoppedAnimation<Color>(
+                        valueColor: const AlwaysStoppedAnimation<Color>(
                           progressColor,
                         ),
                         strokeCap: StrokeCap.round,

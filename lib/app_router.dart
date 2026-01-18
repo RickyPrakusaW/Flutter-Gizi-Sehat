@@ -22,6 +22,11 @@ import 'package:gizi_sehat_mobile_app/features/nutrition/screens/growth_input_sc
 import 'package:gizi_sehat_mobile_app/features/nutrition/screens/growth_result_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/data/models/child_model.dart'; // Dashboard ChildModel
 import 'package:gizi_sehat_mobile_app/features/nutrition/models/child_model.dart'; // GrowthRecord only
+import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/all_recipes_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/data/models/recipe_model.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/recipe_detail_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor/presentation/pages/doctor_detail_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor/presentation/pages/book_appointment_screen.dart';
 
 class AppRouter {
   static const String authGate = '/auth-gate';
@@ -43,6 +48,10 @@ class AppRouter {
   static const String profile = '/profile';
   static const String growthInput = '/growth-input';
   static const String growthResult = '/growth-result';
+  static const String allRecipes = '/all-recipes';
+  static const String recipeDetail = '/recipe-detail';
+  static const String doctorDetail = '/doctor-detail';
+  static const String appointmentBooking = '/appointment-booking';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -164,6 +173,33 @@ class AppRouter {
             child: args['child'] as ChildModel,
             record: args['record'] as GrowthRecord,
           ),
+          settings: settings,
+        );
+
+      case allRecipes:
+        return MaterialPageRoute(
+          builder: (_) => const AllRecipesScreen(),
+          settings: settings,
+        );
+
+      case recipeDetail:
+        final recipe = settings.arguments as RecipeModel;
+        return MaterialPageRoute(
+          builder: (_) => RecipeDetailScreen(recipe: recipe),
+          settings: settings,
+        );
+
+      case doctorDetail:
+        final doctor = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => DoctorDetailScreen(doctor: doctor),
+          settings: settings,
+        );
+
+      case appointmentBooking:
+        final doctor = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => BookAppointmentScreen(doctor: doctor),
           settings: settings,
         );
 

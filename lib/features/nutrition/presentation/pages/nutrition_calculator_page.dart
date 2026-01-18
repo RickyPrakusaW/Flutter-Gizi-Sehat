@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gizi_sehat_mobile_app/features/nutrition/services/nutrition_service.dart';
 import 'package:gizi_sehat_mobile_app/features/nutrition/models/who_standard_model.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
 
 class NutritionCalculatorPage extends StatefulWidget {
   const NutritionCalculatorPage({super.key});
