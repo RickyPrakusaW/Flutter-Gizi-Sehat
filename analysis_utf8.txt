@@ -1,0 +1,29 @@
+﻿Analyzing admin_dashboard_screen.dart...                        
+
+  error - The name 'Border' is defined in the libraries 'package:excel/excel.dart' and 'package:flutter/src/painting/box_border.dart (via package:flutter/material.dart)' - lib\features\admin\presentation\admin_dashboard_screen.dart:223:24 - ambiguous_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\admin\presentation\admin_dashboard_screen.dart:229:50 - deprecated_member_use
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\features\admin\presentation\admin_dashboard_screen.dart:311:23 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\admin\presentation\admin_dashboard_screen.dart:364:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\admin\presentation\admin_dashboard_screen.dart:392:32 - deprecated_member_use
+  error - The name 'Border' is defined in the libraries 'package:excel/excel.dart' and 'package:flutter/src/painting/box_border.dart (via package:flutter/material.dart)' - lib\features\admin\presentation\admin_dashboard_screen.dart:435:23 - ambiguous_import
+  error - The argument type 'UserStatus' can't be assigned to the parameter type 'String'.  - lib\features\admin\presentation\admin_dashboard_screen.dart:594:11 - argument_type_not_assignable
+   info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\features\admin\presentation\admin_dashboard_screen.dart:678:15 - deprecated_member_use
+   info - 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\features\admin\presentation\admin_dashboard_screen.dart:678:21 - deprecated_member_use
+
+flutter : 9 issues found. 
+(ran in 1.3s)
+At line:1 char:1
++ flutter analyze lib/featur
+es/admin/presentation/admin_
+dashboard_scree ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo          
+    : NotSpecified: (9 iss  
+  ues found. (ran in 1.3s   
+ ):String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId 
+    : NativeCommandError
+ 

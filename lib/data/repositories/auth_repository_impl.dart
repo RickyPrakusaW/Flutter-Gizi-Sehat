@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gizi_sehat_mobile_app/core/services/auth_service.dart';
+import 'package:gizi_sehat_mobile_app/core/services/cloudinary_service.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/models/user_model.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/services/role_service.dart';
 import 'auth_repository.dart';
@@ -45,6 +47,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String? practiceLocation,
     String? alumni,
     int? experienceYear,
+    File? proofImage,
   }) async {
     final cred = await _service.registerWithEmail(
       email: email,
@@ -52,6 +55,19 @@ class AuthRepositoryImpl implements AuthRepository {
     );
 
     if (cred.user != null) {
+      // Upload proof image if exists
+      String? uploadedProofUrl;
+      if (proofImage != null) {
+        try {
+          final cloudinaryService = CloudinaryService();
+          uploadedProofUrl = await cloudinaryService.uploadImage(proofImage);
+        } catch (e) {
+          // Fallback logic handled by caller or just log
+          // Might want to throw if strict, but let's proceed to create user doc with optional proof
+          print('Failed to upload proof image to Cloudinary: $e');
+        }
+      }
+
       // Save user data to Firestore
       final userModel = UserModel(
         id: cred.user!.uid,
@@ -63,6 +79,7 @@ class AuthRepositoryImpl implements AuthRepository {
         status: role == UserRole.doctor
             ? UserStatus.pending
             : UserStatus.active,
+        proofUrl: uploadedProofUrl,
         title: title,
         specialist: specialist,
         strNumber: strNumber,

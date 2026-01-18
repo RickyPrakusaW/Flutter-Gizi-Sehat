@@ -42,12 +42,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailCtrl.text.trim();
     final password = _passCtrl.text.trim();
 
-    // 1. Cek Hardcoded Admin Login (Bypass Firebase)
-    if (email == 'admin' && password == 'admin123') {
-      Navigator.pushReplacementNamed(context, AppRouter.adminDashboard);
-      return;
-    }
-
     // 2. Login User Biasa (Firebase)
     final ok = await auth.login(email: email, password: password);
 
@@ -134,9 +128,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (value == null || value.isEmpty) {
       return 'Email tidak boleh kosong!';
     }
-
-    // Allow "admin" for hardcoded admin login
-    if (value.trim() == 'admin') return null;
 
     final emailRegex = RegExp(
       r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',

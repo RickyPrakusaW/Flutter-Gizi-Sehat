@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:gizi_sehat_mobile_app/features/auth/models/user_model.dart';
 
 class AuthUserData {
@@ -28,6 +29,7 @@ abstract class AuthRepository {
     String? practiceLocation,
     String? alumni,
     int? experienceYear,
+    File? proofImage,
   });
   Future<void> signInWithGoogle(); // Method baru untuk Google Sign-In
   Future<void> logout();

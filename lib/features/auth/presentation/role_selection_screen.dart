@@ -15,6 +15,17 @@ class RoleSelectionScreen extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              // Jika tidak bisa pop (misal replace route), paksa ke Login
+              Navigator.pushReplacementNamed(context, AppRouter.login);
+            }
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),

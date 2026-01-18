@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
+import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/data/models/child_model.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/data/services/child_service.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/widgets/child_dialogs.dart';
 
 class ChildPage extends StatefulWidget {
   const ChildPage({super.key});
@@ -11,15 +16,89 @@ class ChildPage extends StatefulWidget {
 class _ChildPageState extends State<ChildPage> {
   // 0 = Child Growth, 1 = Daily Diaries
   int _selectedTab = 0;
-
   // 0 = Weight, 1 = Height, 2 = Head Girth
   int _selectedGrowthMetric = 0;
-
   // null = Summary, 'Carbs', 'Proteins', 'Fat'
   String? _selectedNutrientType;
 
+  final ChildService _childService = ChildService();
+  String? _selectedChildId;
+
+  void _showChildSelection(List<ChildModel> children) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => ListView.builder(
+        shrinkWrap: true,
+        padding: const EdgeInsets.all(16),
+        itemCount: children.length + 1,
+        itemBuilder: (context, index) {
+          if (index == children.length) {
+            return ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: Colors.transparent,
+                child: Icon(Icons.add, color: AppColors.primary),
+              ),
+              title: const Text(
+                'Tambah Anak',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                final uid = context.read<AuthProvider>().userModel?.id;
+                if (uid != null) {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AddEditChildDialog(userId: uid),
+                  );
+                }
+              },
+            );
+          }
+          final child = children[index];
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundColor: child.gender == 'Perempuan'
+                  ? AppColors.femalePink.withOpacity(0.1)
+                  : Colors.blue.withOpacity(0.1),
+              child: Icon(
+                Icons.face,
+                color: child.gender == 'Perempuan'
+                    ? AppColors.femalePink
+                    : Colors.blue,
+              ),
+            ),
+            title: Text(
+              child.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(child.ageString),
+            trailing: _selectedChildId == child.id
+                ? const Icon(Icons.check_circle, color: AppColors.primary)
+                : null,
+            onTap: () {
+              setState(() => _selectedChildId = child.id);
+              Navigator.pop(context);
+            },
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final uid = context.watch<AuthProvider>().userModel?.id;
+
+    if (uid == null) {
+      return const Scaffold(body: Center(child: Text('Please login first')));
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -32,128 +111,265 @@ class _ChildPageState extends State<ChildPage> {
                 onPressed: () => setState(() => _selectedNutrientType = null),
               )
             : null,
-        title: _buildHeader(),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Tabs - Hide/Disable tabs when in detail mode to focus attention
-            if (_selectedNutrientType == null) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    _buildTabItem(0, 'Child growth'),
-                    const SizedBox(width: 24),
-                    _buildTabItem(1, 'Daily diaries'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
+        toolbarHeight: _selectedNutrientType != null ? 56 : 80, // Adjust height
+        title: _selectedNutrientType != null
+            ? null // No custom title when in detail mode
+            : StreamBuilder<List<ChildModel>>(
+                stream: _childService.getChildrenStream(uid),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return const SizedBox();
+                  final children = snapshot.data ?? [];
+                  if (children.isEmpty)
+                    return const SizedBox(); // Handle empty in body
 
-            // Content Body based on selected tab
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: _selectedTab == 0
-                  ? _buildGrowthTabContent()
-                  : _buildDailyDiariesTabContent(),
+                  // Determine selected child
+                  ChildModel displayedChild;
+                  if (_selectedChildId != null &&
+                      children.any((c) => c.id == _selectedChildId)) {
+                    displayedChild = children.firstWhere(
+                      (c) => c.id == _selectedChildId,
+                    );
+                  } else {
+                    displayedChild = children.first;
+                    // Defer state update to avoid build error
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_selectedChildId != displayedChild.id) {
+                        setState(() => _selectedChildId = displayedChild.id);
+                      }
+                    });
+                  }
+
+                  return _buildHeader(children, displayedChild, uid);
+                },
+              ),
+      ),
+      body: StreamBuilder<List<ChildModel>>(
+        stream: _childService.getChildrenStream(uid),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final children = snapshot.data ?? [];
+
+          if (children.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.child_care,
+                      size: 64,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Belum ada data anak',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Tambahkan data anak untuk memantau\ntumbuh kembangnya.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AddEditChildDialog(userId: uid),
+                      );
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Tambah Anak'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Tabs
+                if (_selectedNutrientType == null) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      children: [
+                        _buildTabItem(0, 'Child growth'),
+                        const SizedBox(width: 24),
+                        _buildTabItem(1, 'Daily diaries'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // Content
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _selectedTab == 0
+                      ? _buildGrowthTabContent()
+                      : _buildDailyDiariesTabContent(),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  // --- Widgets ---
-
-  Widget _buildHeader() {
-    return Row(
-      children: [
-        Stack(
+  Widget _buildHeader(
+    List<ChildModel> allChildren,
+    ChildModel currentChild,
+    String uid,
+  ) {
+    return GestureDetector(
+      onTap: () => _showChildSelection(allChildren),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        color: Colors.transparent, // Hit test
+        child: Row(
           children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: AppColors.femalePink.withOpacity(0.2),
-              child: const Icon(Icons.face_3, color: AppColors.femalePink),
-            ),
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: currentChild.gender == 'Perempuan'
+                      ? AppColors.femalePink.withOpacity(0.2)
+                      : Colors.blue.withOpacity(0.2),
+                  child: Icon(
+                    Icons.face,
+                    color: currentChild.gender == 'Perempuan'
+                        ? AppColors.femalePink
+                        : Colors.blue,
+                  ),
                 ),
-                child: const Icon(Icons.stars, size: 12, color: Colors.orange),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  Flexible(
-                    child: Text(
-                      'Haylie Westervelt',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.black87,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.stars,
+                      size: 12,
+                      color: Colors.orange,
                     ),
                   ),
-                  SizedBox(width: 4),
+                ),
+              ],
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          currentChild.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '- ${currentChild.status}',
+                        style: TextStyle(
+                          color: currentChild.status == 'Normal'
+                              ? AppColors.success
+                              : Colors.orange,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                   Text(
-                    '- Normal',
-                    style: TextStyle(
-                      color: AppColors.success,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    currentChild.ageString,
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                   ),
                 ],
               ),
-              Text(
-                '1 year 6 Months 24 days',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+            ),
+            // Edit Button
+            GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AddEditChildDialog(
+                    userId: uid,
+                    child: currentChild, // Edit mode
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.edit_outlined,
+                  size: 18,
+                  color: Colors.blue.shade700,
+                ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons
+                    .search, // Replaced arrow with search or something else, actually arrow is fine for dropdown
+                size: 18,
+                color: Colors.blue.shade700,
+              ),
+            ),
+            // Force icon back to arrow in replacement content
+            const SizedBox(width: 0),
+          ],
         ),
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.blue.shade50,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Icons.edit_outlined,
-            size: 18,
-            color: Colors.blue.shade700,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.blue.shade50,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Icons.keyboard_arrow_down,
-            size: 18,
-            color: Colors.blue.shade700,
-          ),
-        ),
-      ],
+      ),
     );
   }
 

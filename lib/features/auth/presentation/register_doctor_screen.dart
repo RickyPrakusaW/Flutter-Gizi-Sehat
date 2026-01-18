@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -34,6 +36,8 @@ class _RegisterDoctorScreenState extends State<RegisterDoctorScreen> {
   final _alumniCtrl = TextEditingController();
   final _expYearCtrl = TextEditingController();
 
+  File? _proofFile;
+
   bool _hidePass = true;
   bool _hideConfirm = true;
 
@@ -54,8 +58,32 @@ class _RegisterDoctorScreenState extends State<RegisterDoctorScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _proofFile = File(pickedFile.path);
+      });
+    }
+  }
+
   Future<void> _onSubmit() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_proofFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Wajib upload foto Ijazah/SIP/STR!'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
@@ -74,6 +102,7 @@ class _RegisterDoctorScreenState extends State<RegisterDoctorScreen> {
       practiceLocation: _locationCtrl.text.trim(),
       alumni: _alumniCtrl.text.trim(),
       experienceYear: int.tryParse(_expYearCtrl.text.trim()),
+      proofImage: _proofFile,
     );
 
     if (!mounted) return;
@@ -115,7 +144,10 @@ class _RegisterDoctorScreenState extends State<RegisterDoctorScreen> {
                 (route) => false,
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accent,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Ke Halaman Login'),
           ),
         ],
@@ -183,6 +215,25 @@ class _RegisterDoctorScreenState extends State<RegisterDoctorScreen> {
                 const SizedBox(height: 24),
 
                 const _SectionTitle('Informasi Akun'),
+
+                // ... (Previous fields skipped for brevity in replace, but needed in context) ...
+                // Logic: Since I'm replacing a huge chunk, I'll rely on the existing start/end lines to keep the middle fields if possible.
+                // Wait, "ReplacementContent" must replace everything between StartLine and EndLine.
+                // The prompt asks for "Update RegisterDoctorScreen".
+                // I will try to target specific blocks to avoid deleting the "middle" fields like Name, Email, Password.
+                // But the user wants the image picker *above* the submit button.
+                // So I will split this into two edits or one big edit if I include everything.
+                // Given the file size (~400 lines), one big edit is risky.
+                // I will use two edits.
+                // Edit 1: Header imports and state variables/methods.
+                // Edit 2: The `build` method part where the submit button is.
+
+                // Oops, I already put a huge block in "ReplacementContent".
+                // Let's refine the strategy.
+                // I'll update the top part first (Imports + State + _onSubmit).
+                // Then I'll update the Bottom part (Image Picker UI).
+
+                // This call is for: Imports + State + _onSubmit logic.
                 const SizedBox(height: 16),
 
                 // Nama
@@ -361,6 +412,79 @@ class _RegisterDoctorScreenState extends State<RegisterDoctorScreen> {
                       ),
                     ),
                   ],
+                ),
+
+                const SizedBox(height: 32),
+                const _SectionTitle('Dokumen Pendukung'),
+                const SizedBox(height: 16),
+
+                InkWell(
+                  onTap: _pickImage,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    height: 150,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.grey.shade300,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    child: _proofFile == null
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.cloud_upload_outlined,
+                                size: 48,
+                                color: Colors.blue.shade300,
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Upload Foto Ijazah / STR / SIP',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                '(Wajib untuk verifikasi)',
+                                style: TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(
+                                  _proofFile!,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: Colors.black38,
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                    size: 32,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
                 ),
 
                 const SizedBox(height: 40),

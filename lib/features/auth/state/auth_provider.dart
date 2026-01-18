@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:gizi_sehat_mobile_app/data/repositories/auth_repository.dart';
@@ -31,6 +32,8 @@ class AuthProvider extends ChangeNotifier {
         _status = AuthStatus.unauthenticated;
         _currentEmail = null;
         _userModel = null;
+        _userSub?.cancel(); // Cancel subscription to prevent stale data updates
+        _userSub = null;
       } else {
         _status = AuthStatus.authenticated;
         _currentEmail = userData.email;
@@ -98,6 +101,7 @@ class AuthProvider extends ChangeNotifier {
     String? practiceLocation,
     String? alumni,
     int? experienceYear,
+    File? proofImage,
   }) async {
     _setLoading(true);
     _clearError();
@@ -115,6 +119,7 @@ class AuthProvider extends ChangeNotifier {
         practiceLocation: practiceLocation,
         alumni: alumni,
         experienceYear: experienceYear,
+        proofImage: proofImage,
       );
       debugPrint('Register success: $email');
 
@@ -155,8 +160,19 @@ class AuthProvider extends ChangeNotifier {
 
   /// Logout user dari Firebase Auth
   Future<void> logout() async {
+    // 1. Clear state lokal DULUAN agar UI langsung bereaksi/reset
+    _status = AuthStatus.unauthenticated;
+    _currentEmail = null;
+    _userModel = null;
+    _userSub?.cancel();
+    _userSub = null;
+
+    // 2. Notify listeners agar UI yang bergantung pada authState segera update
+    notifyListeners();
+
+    // 3. Lakukan logout sesungguhnya di Firebase/Repo
     await _repo.logout();
-    debugPrint('User logged out');
+    debugPrint('User logged out (Cleaned local state)');
   }
 
   // ============ Profile Updates ============

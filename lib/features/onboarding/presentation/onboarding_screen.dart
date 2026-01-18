@@ -18,27 +18,31 @@ class OnboardingItem {
 }
 
 /// Data onboarding yang ditampilkan (3 halaman)
+/// Data onboarding yang ditampilkan (3 halaman)
 const onboardingItems = <OnboardingItem>[
   OnboardingItem(
-    image: 'assets/images/onboarding/onboarding1.jpg',
-    title: 'Deteksi Gizi dari Foto Makanan',
-    subtitle: 'AI pintar untuk analisis nutrisi',
+    // Gambar 2: Wanita Hamil (Mulai dari masa kehamilan)
+    image: 'assets/images/onboarding/onboarding2.png',
+    title: 'Pantau Gizi Sejak Kehamilan',
+    subtitle: 'Kesehatan ibu cermin kesehatan janin',
     description:
-        'Ambil foto makanan dan dapatkan analisis kandungan gizi secara otomatis. Teknologi AI membantu menghitung kalori, protein, dan nutrisi penting lainnya.',
+    'Dapatkan rekomendasi nutrisi khusus untuk Ibu hamil. Persiapkan 1000 hari pertama kehidupan buah hati Anda dengan asupan gizi yang tepat dan terpantau.',
   ),
   OnboardingItem(
-    image: 'assets/images/onboarding/onboarding2.jpg',
-    title: 'Asisten Gizi dan Saran Menu',
-    subtitle: 'Konsultasi 24/7 dengan AI',
+    // Gambar 1: Ibu menyuapi anak (Nutrisi & Makan)
+    image: 'assets/images/onboarding/onboarding1.png',
+    title: 'Analisis Nutrisi Makanan',
+    subtitle: 'Cek kandungan gizi hanya lewat foto',
     description:
-        'Dapatkan saran menu sehat sesuai usia anak, konsultasi gizi, dan rekomendasi makanan lokal yang terjangkau. Asisten AI siap membantu kapan saja.',
+    'Bingung dengan menu si Kecil? Foto makanannya dan biarkan AI kami menghitung kalori serta nutrisinya. Pastikan anak makan lahap dengan gizi seimbang.',
   ),
   OnboardingItem(
-    image: 'assets/images/onboarding/onboarding3.jpg',
+    // Gambar 3: Ayah mengukur tinggi anak (Tumbuh Kembang)
+    image: 'assets/images/onboarding/onboarding3.png',
     title: 'Cegah Stunting Sejak Dini',
-    subtitle: 'Pantau tumbuh kembang anak dengan mudah',
+    subtitle: 'Monitoring tumbuh kembang secara berkala',
     description:
-        'Gunakan kurva pertumbuhan WHO untuk memantau berat dan tinggi badan anak secara berkala. Deteksi dini risiko stunting untuk masa depan yang lebih sehat.',
+    'Catat tinggi dan berat badan anak dengan mudah. Gunakan kurva standar WHO untuk mendeteksi risiko stunting lebih awal demi masa depan yang gemilang.',
   ),
 ];
 
