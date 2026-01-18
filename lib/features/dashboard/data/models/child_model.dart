@@ -4,6 +4,7 @@ class ChildModel {
   final String gender; // 'Laki-laki' or 'Perempuan'
   final DateTime birthDate;
   final String status; // 'Normal', 'Berisiko', etc.
+  final String? profileImage; // New field
 
   ChildModel({
     required this.id,
@@ -11,6 +12,7 @@ class ChildModel {
     required this.gender,
     required this.birthDate,
     required this.status,
+    this.profileImage,
   });
 
   Map<String, dynamic> toMap() {
@@ -20,6 +22,7 @@ class ChildModel {
       'gender': gender,
       'birthDate': birthDate.toIso8601String(),
       'status': status,
+      'profileImage': profileImage,
     };
   }
 
@@ -32,6 +35,7 @@ class ChildModel {
           ? DateTime.parse(map['birthDate'])
           : DateTime.now(),
       status: map['status'] ?? 'Normal',
+      profileImage: map['profileImage'],
     );
   }
 

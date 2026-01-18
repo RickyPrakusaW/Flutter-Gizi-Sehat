@@ -1,6 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/data/models/child_model.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/data/services/child_service.dart';
+import 'package:gizi_sehat_mobile_app/core/services/cloudinary_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class AddEditChildDialog extends StatefulWidget {
   final String userId;
@@ -18,7 +22,10 @@ class _AddEditChildDialogState extends State<AddEditChildDialog> {
   DateTime _birthDate = DateTime.now();
   String _status = 'Normal';
   final ChildService _service = ChildService();
+  final CloudinaryService _cloudinary = CloudinaryService();
   bool _isLoading = false;
+  File? _selectedImage;
+  String? _currentImageUrl;
 
   @override
   void initState() {
@@ -28,8 +35,17 @@ class _AddEditChildDialogState extends State<AddEditChildDialog> {
       _gender = widget.child!.gender;
       _birthDate = widget.child!.birthDate;
       _status = widget.child!.status;
+      _currentImageUrl = widget.child!.profileImage;
     } else {
       _nameController = TextEditingController();
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() => _selectedImage = File(pickedFile.path));
     }
   }
 
@@ -50,12 +66,18 @@ class _AddEditChildDialogState extends State<AddEditChildDialog> {
 
     setState(() => _isLoading = true);
     try {
+      String? imageUrl = _currentImageUrl;
+      if (_selectedImage != null) {
+        imageUrl = await _cloudinary.uploadImage(_selectedImage!);
+      }
+
       final childData = ChildModel(
         id: widget.child?.id ?? '',
         name: _nameController.text.trim(),
         gender: _gender,
         birthDate: _birthDate,
         status: _status,
+        profileImage: imageUrl,
       );
 
       if (widget.child != null) {
@@ -95,6 +117,26 @@ class _AddEditChildDialogState extends State<AddEditChildDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Colors.grey.shade200,
+                  backgroundImage: _selectedImage != null
+                      ? FileImage(_selectedImage!)
+                      : (_currentImageUrl != null
+                          ? CachedNetworkImageProvider(_currentImageUrl!)
+                              as ImageProvider
+                          : null),
+                  child: (_selectedImage == null && _currentImageUrl == null)
+                      ? const Icon(Icons.camera_alt,
+                          color: Colors.grey, size: 32)
+                      : null,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Nama Anak'),

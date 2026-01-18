@@ -18,6 +18,10 @@ import 'package:gizi_sehat_mobile_app/features/marketplace/screens/invoice_scree
 import 'package:gizi_sehat_mobile_app/features/admin/presentation/admin_dashboard_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/doctor_dashboard/presentation/doctor_dashboard_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/profile_page.dart';
+import 'package:gizi_sehat_mobile_app/features/nutrition/screens/growth_input_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/nutrition/screens/growth_result_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/data/models/child_model.dart'; // Dashboard ChildModel
+import 'package:gizi_sehat_mobile_app/features/nutrition/models/child_model.dart'; // GrowthRecord only
 
 class AppRouter {
   static const String authGate = '/auth-gate';
@@ -37,6 +41,8 @@ class AppRouter {
   static const String adminDashboard = '/admin-dashboard';
   static const String doctorDashboard = '/doctor-dashboard';
   static const String profile = '/profile';
+  static const String growthInput = '/growth-input';
+  static const String growthResult = '/growth-result';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -139,6 +145,25 @@ class AppRouter {
       case profile:
         return MaterialPageRoute(
           builder: (_) => const ProfilePage(),
+          settings: settings,
+        );
+
+      case growthInput:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final child = args != null ? args['child'] as ChildModel? : null;
+
+        return MaterialPageRoute(
+          builder: (_) => GrowthInputScreen(child: child),
+          settings: settings,
+        );
+
+      case growthResult:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => GrowthResultScreen(
+            child: args['child'] as ChildModel,
+            record: args['record'] as GrowthRecord,
+          ),
           settings: settings,
         );
 

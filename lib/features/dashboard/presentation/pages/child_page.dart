@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/data/models/child_model.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/data/services/child_service.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/widgets/child_dialogs.dart';
+import 'package:gizi_sehat_mobile_app/app_router.dart';
 
 class ChildPage extends StatefulWidget {
   const ChildPage({super.key});
@@ -66,12 +68,17 @@ class _ChildPageState extends State<ChildPage> {
               backgroundColor: child.gender == 'Perempuan'
                   ? AppColors.femalePink.withOpacity(0.1)
                   : Colors.blue.withOpacity(0.1),
-              child: Icon(
-                Icons.face,
-                color: child.gender == 'Perempuan'
-                    ? AppColors.femalePink
-                    : Colors.blue,
-              ),
+              backgroundImage: child.profileImage != null
+                  ? CachedNetworkImageProvider(child.profileImage!)
+                  : null,
+              child: child.profileImage != null
+                  ? null
+                  : Icon(
+                      Icons.face,
+                      color: child.gender == 'Perempuan'
+                          ? AppColors.femalePink
+                          : Colors.blue,
+                    ),
             ),
             title: Text(
               child.name,
@@ -210,10 +217,53 @@ class _ChildPageState extends State<ChildPage> {
             );
           }
 
+          // Determine selected child for body
+          ChildModel displayedChild;
+          if (_selectedChildId != null &&
+              children.any((c) => c.id == _selectedChildId)) {
+            displayedChild = children.firstWhere(
+              (c) => c.id == _selectedChildId,
+            );
+          } else {
+            displayedChild = children.first;
+          }
+
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Calculator Button
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // Pass the current child to the input screen
+                        Navigator.pushNamed(
+                          context,
+                          AppRouter.growthInput,
+                          arguments: {
+                            'child': displayedChild,
+                          },
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF8BC34A), // Green
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      icon: const Icon(Icons.calculate_outlined),
+                      label:
+                          const Text('Kalkulator Perkembangan Gizi Anak (WHO)'),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
                 // Tabs
                 if (_selectedNutrientType == null) ...[
                   Padding(
@@ -233,7 +283,7 @@ class _ChildPageState extends State<ChildPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: _selectedTab == 0
-                      ? _buildGrowthTabContent()
+                      ? _buildGrowthTabContent(displayedChild)
                       : _buildDailyDiariesTabContent(),
                 ),
               ],
@@ -263,12 +313,17 @@ class _ChildPageState extends State<ChildPage> {
                   backgroundColor: currentChild.gender == 'Perempuan'
                       ? AppColors.femalePink.withOpacity(0.2)
                       : Colors.blue.withOpacity(0.2),
-                  child: Icon(
-                    Icons.face,
-                    color: currentChild.gender == 'Perempuan'
-                        ? AppColors.femalePink
-                        : Colors.blue,
-                  ),
+                  backgroundImage: currentChild.profileImage != null
+                      ? CachedNetworkImageProvider(currentChild.profileImage!)
+                      : null,
+                  child: currentChild.profileImage != null
+                      ? null
+                      : Icon(
+                          Icons.face,
+                          color: currentChild.gender == 'Perempuan'
+                              ? AppColors.femalePink
+                              : Colors.blue,
+                        ),
                 ),
                 Positioned(
                   right: 0,
@@ -327,30 +382,7 @@ class _ChildPageState extends State<ChildPage> {
                 ],
               ),
             ),
-            // Edit Button
-            GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => AddEditChildDialog(
-                    userId: uid,
-                    child: currentChild, // Edit mode
-                  ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.edit_outlined,
-                  size: 18,
-                  color: Colors.blue.shade700,
-                ),
-              ),
-            ),
+
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.all(8),
@@ -401,7 +433,8 @@ class _ChildPageState extends State<ChildPage> {
   }
 
   // --- Growth Tab ---
-  Widget _buildGrowthTabContent() {
+  // Updated to accept currentChild even if not used in charts yet (future prep)
+  Widget _buildGrowthTabContent(ChildModel currentChild) {
     String chartTitle;
     String chartUnit;
     switch (_selectedGrowthMetric) {
@@ -427,8 +460,8 @@ class _ChildPageState extends State<ChildPage> {
           _selectedGrowthMetric == 0
               ? 'Current Weight Growth'
               : _selectedGrowthMetric == 1
-              ? 'Current Height Growth'
-              : 'Current Head Girth Growth',
+                  ? 'Current Height Growth'
+                  : 'Current Head Girth Growth',
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -964,16 +997,24 @@ class _ChildPageState extends State<ChildPage> {
                 ],
               ),
               const SizedBox(height: 16),
-              _buildMealItem('Breakfast', '410 Kcal', [
-                'Chicken vegetable rice',
-                'Boiled egg',
-                'Milk',
-              ], const Color(0xFFB2DFDB)), // Greenish background
+              _buildMealItem(
+                  'Breakfast',
+                  '410 Kcal',
+                  [
+                    'Chicken vegetable rice',
+                    'Boiled egg',
+                    'Milk',
+                  ],
+                  const Color(0xFFB2DFDB)), // Greenish background
               const SizedBox(height: 16),
-              _buildMealItem('Lunch', '340 Kcal', [
-                'Chicken vegetable rice',
-                'Boiled egg',
-              ], const Color(0xFFB2DFDB)),
+              _buildMealItem(
+                  'Lunch',
+                  '340 Kcal',
+                  [
+                    'Chicken vegetable rice',
+                    'Boiled egg',
+                  ],
+                  const Color(0xFFB2DFDB)),
             ],
           ),
         ),
@@ -1573,9 +1614,8 @@ class _ChildPageState extends State<ChildPage> {
     final borderColor = isSelected
         ? const Color(0xFF80CBC4).withOpacity(0.5)
         : Colors.transparent;
-    final contentColor = isSelected
-        ? const Color(0xFF00695C)
-        : Colors.grey.shade600;
+    final contentColor =
+        isSelected ? const Color(0xFF00695C) : Colors.grey.shade600;
     final valueColor = isSelected ? const Color(0xFF004D40) : Colors.black87;
 
     return GestureDetector(
@@ -1655,9 +1695,8 @@ class _ChildPageState extends State<ChildPage> {
                 isTaken ? 'Taken' : 'Not taken',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isTaken
-                      ? AppColors.successDark
-                      : const Color(0xFFC62828),
+                  color:
+                      isTaken ? AppColors.successDark : const Color(0xFFC62828),
                   fontWeight: FontWeight.w600,
                 ),
               ),

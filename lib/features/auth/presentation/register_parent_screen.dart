@@ -314,6 +314,7 @@ class _RegisterParentScreenState extends State<RegisterParentScreen> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
+                              color: Colors.white, // Force white color
                             ),
                           ),
                   ),
