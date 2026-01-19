@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:gizi_sehat_mobile_app/core/services/news_parenting_service.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/data/models/news_article_model.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/widgets/news_card.dart';
 import 'package:provider/provider.dart';
 import 'package:gizi_sehat_mobile_app/core/constants/app_colors.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
@@ -21,6 +24,25 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   String? _selectedChildId; // State to track selected child
+  final NewsParentingService _newsService = NewsParentingService();
+  List<NewsArticle> _newsList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNews();
+  }
+
+  Future<void> _loadNews() async {
+    try {
+      final news = await _newsService.getNews();
+      setState(() {
+        _newsList = news;
+      });
+    } catch (e) {
+      debugPrint('Error fetching parenting news: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,12 +73,20 @@ class _DashboardPageState extends State<DashboardPage> {
             // 2. Menu Icons
             _buildMenuGrid(context),
 
-            // 3. Popular Thread
-            _buildSectionHeader('Popular thread', onViewAll: () {}),
+            // 3. Popular Thread (Parenting News)
+            _buildSectionHeader('Popular Thread', onViewAll: () {
+              Navigator.pushNamed(context, AppRouter.allNews);
+            }),
             _buildPopularThreadList(),
 
-            // 4. Ide Resep Makanan
-            _buildSectionHeader('Ide Resep Makanan', onViewAll: () {
+            // 4. Popular Doctor
+            _buildSectionHeader('Popular Doctor', onViewAll: () {
+              Navigator.pushNamed(context, AppRouter.doctorList);
+            }),
+            _buildPopularDoctorList(),
+
+            // 5. Ide Resep Makanan -> Meal Recipe Ideas
+            _buildSectionHeader('Meal Recipe Ideas', onViewAll: () {
               Navigator.pushNamed(context, AppRouter.allRecipes);
             }),
             _buildNewestArticleList(),
@@ -603,120 +633,137 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildPopularThreadList() {
+    if (_newsList.isEmpty) {
+      return const SizedBox(
+        height: 190,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return SizedBox(
-      height: 190,
+      height: 250, // Increased height to fit NewsCard
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         scrollDirection: Axis.horizontal,
-        itemCount: 3,
+        itemCount: _newsList.take(5).length, // Show top 5
         separatorBuilder: (ctx, i) => const SizedBox(width: 16),
         itemBuilder: (ctx, i) {
+          final article = _newsList[i];
+          return NewsCard(
+            article: article,
+            onTap: () {
+              Navigator.pushNamed(context, AppRouter.newsDetail,
+                  arguments: article);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPopularDoctorList() {
+    final doctors = [
+      {
+        'name': 'Dr. Truluck Nik',
+        'role': 'Medicine Specialist',
+        'rating': 4.0,
+        'image': 'https://placehold.co/200x200/png?text=Dr+Nik'
+      },
+      {
+        'name': 'Dr. Tranquilli',
+        'role': 'Pathology Specialist',
+        'rating': 5.0,
+        'image': 'https://placehold.co/200x200/png?text=Dr+Tran'
+      },
+      {
+        'name': 'Dr. Shoemaker',
+        'role': 'Pediatrician',
+        'rating': 3.0,
+        'image': 'https://placehold.co/200x200/png?text=Dr+Shoe'
+      },
+      {
+        'name': 'Dr. Haddock',
+        'role': 'Obstetrician',
+        'rating': 5.0,
+        'image': 'https://placehold.co/200x200/png?text=Dr+Had'
+      },
+    ];
+
+    return SizedBox(
+      height: 220,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        scrollDirection: Axis.horizontal,
+        itemCount: doctors.length,
+        separatorBuilder: (ctx, i) => const SizedBox(width: 16),
+        itemBuilder: (ctx, i) {
+          final doctor = doctors[i];
           return Container(
-            width: 280,
-            padding: const EdgeInsets.all(16),
+            width: 160,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFEDF2F7)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
+                  color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    const CircleAvatar(
-                      radius: 12,
-                      // Placeholder avatar
-                      backgroundColor: Colors.grey,
-                      child: Icon(Icons.person, size: 16, color: Colors.white),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Maria Aminoff',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(20)),
+                      image: DecorationImage(
+                        image: CachedNetworkImageProvider(
+                            doctor['image'] as String),
+                        fit: BoxFit.cover,
                       ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      'Parents • 4 Nov 2024',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0F2F1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Parenting',
-                    style: TextStyle(
-                      color: Color(0xFF00897B),
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'How to deal with children who have temper tantrums?',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: Color(0xFF2D3748),
-                    height: 1.3,
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    children: [
+                      Text(
+                        doctor['name'] as String,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Color(0xFF2D3748),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        doctor['role'] as String,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 11,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(5, (index) {
+                          double rating = doctor['rating'] as double;
+                          return Icon(
+                            index < rating ? Icons.star : Icons.star_border,
+                            color: Colors.amber,
+                            size: 14,
+                          );
+                        }),
+                      )
+                    ],
                   ),
-                ),
-                const Spacer(),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.comment_outlined,
-                      size: 14,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '12491',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 11,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Icon(
-                      Icons.bar_chart,
-                      size: 14,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '191',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
