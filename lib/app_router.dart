@@ -10,13 +10,18 @@ import 'package:gizi_sehat_mobile_app/features/auth/presentation/auth_gate_scree
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/home_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/nutrition/screens/nutrition_schedule_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/nutrition/screens/food_scanner_screen.dart';
-import 'package:gizi_sehat_mobile_app/features/consultation/screens/doctor_list_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor/presentation/pages/doctor_list_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/consultation/screens/chat_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/consultation/screens/chat_list_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/all_news_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/news_detail_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/data/models/news_article_model.dart';
 import 'package:gizi_sehat_mobile_app/features/marketplace/screens/marketplace_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/marketplace/screens/cart_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/marketplace/screens/invoice_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/admin/presentation/admin_dashboard_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/doctor_dashboard/presentation/doctor_dashboard_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor_dashboard/presentation/doctor_profile_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/profile_page.dart';
 import 'package:gizi_sehat_mobile_app/features/nutrition/screens/growth_input_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/nutrition/screens/growth_result_screen.dart';
@@ -27,6 +32,8 @@ import 'package:gizi_sehat_mobile_app/features/dashboard/data/models/recipe_mode
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/recipe_detail_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/doctor/presentation/pages/doctor_detail_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/doctor/presentation/pages/book_appointment_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor/presentation/pages/appointment_patient_details_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor/presentation/pages/favorite_doctors_screen.dart';
 
 class AppRouter {
   static const String authGate = '/auth-gate';
@@ -39,12 +46,17 @@ class AppRouter {
   static const String nutritionSchedule = '/nutrition-schedule';
   static const String foodScanner = '/food-scanner';
   static const String doctorList = '/doctor-list';
+
   static const String chat = '/chat';
+  static const String chatList = '/chat-list';
+  static const String allNews = '/all-news';
+  static const String newsDetail = '/news-detail';
   static const String marketplace = '/marketplace';
   static const String cart = '/cart';
   static const String invoice = '/invoice';
   static const String adminDashboard = '/admin-dashboard';
   static const String doctorDashboard = '/doctor-dashboard';
+  static const String doctorProfile = '/doctor-profile';
   static const String profile = '/profile';
   static const String growthInput = '/growth-input';
   static const String growthResult = '/growth-result';
@@ -52,6 +64,9 @@ class AppRouter {
   static const String recipeDetail = '/recipe-detail';
   static const String doctorDetail = '/doctor-detail';
   static const String appointmentBooking = '/appointment-booking';
+  static const String appointmentPatientDetails =
+      '/appointment-patient-details';
+  static const String favoriteDoctors = '/favorite-doctors';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -116,8 +131,30 @@ class AppRouter {
         );
 
       case chat:
+        final partner = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
-          builder: (_) => const ChatScreen(),
+          builder: (_) => ChatScreen(partner: partner),
+          settings: settings,
+        );
+
+      case chatList:
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final isDoctor = args['isDoctor'] as bool? ?? false;
+        return MaterialPageRoute(
+          builder: (_) => ChatListScreen(isDoctor: isDoctor),
+          settings: settings,
+        );
+
+      case allNews:
+        return MaterialPageRoute(
+          builder: (_) => const AllNewsScreen(),
+          settings: settings,
+        );
+
+      case newsDetail:
+        final article = settings.arguments as NewsArticle;
+        return MaterialPageRoute(
+          builder: (_) => NewsDetailScreen(article: article),
           settings: settings,
         );
 
@@ -148,6 +185,12 @@ class AppRouter {
       case doctorDashboard:
         return MaterialPageRoute(
           builder: (_) => const DoctorDashboardScreen(),
+          settings: settings,
+        );
+
+      case doctorProfile:
+        return MaterialPageRoute(
+          builder: (_) => const DoctorProfileScreen(),
           settings: settings,
         );
 
@@ -200,6 +243,23 @@ class AppRouter {
         final doctor = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
           builder: (_) => BookAppointmentScreen(doctor: doctor),
+          settings: settings,
+        );
+
+      case appointmentPatientDetails:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => AppointmentPatientDetailsScreen(
+            doctor: args['doctor'],
+            date: args['date'],
+            time: args['time'],
+          ),
+          settings: settings,
+        );
+
+      case favoriteDoctors:
+        return MaterialPageRoute(
+          builder: (_) => const FavoriteDoctorsScreen(),
           settings: settings,
         );
 

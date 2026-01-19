@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
 import 'package:gizi_sehat_mobile_app/features/auth/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gizi_sehat_mobile_app/app_router.dart';
 
 class DoctorDashboardScreen extends StatefulWidget {
   const DoctorDashboardScreen({super.key});
@@ -13,9 +14,6 @@ class DoctorDashboardScreen extends StatefulWidget {
 }
 
 class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
-  // Simpel controller untuk input text (jika ada data lain)
-  // Saat ini fokus ke upload bukti
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
@@ -35,7 +33,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              // Tampilkan loading dialog
               showDialog(
                 context: context,
                 barrierDismissible: false,
@@ -47,9 +44,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               await auth.logout();
 
               if (!context.mounted) return;
-              // Tutup dialog
               Navigator.pop(context);
-              // Kembali ke login dan hapus stack history
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 '/login',
@@ -105,10 +100,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 ),
                 // Status Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: user.status == UserStatus.active
                         ? Colors.green.withOpacity(0.1)
@@ -192,7 +185,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
             style: TextStyle(height: 1.5, color: Colors.black87),
           ),
           const SizedBox(height: 24),
-
           if (hasUploaded) ...[
             Container(
               width: double.infinity,
@@ -250,20 +242,57 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Aktivitas',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          'Menu Dokter',
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        _buildStatCard(
-          context,
-          icon: Icons.chat_bubble_outline,
-          label: 'Konsultasi Aktif',
-          value: '0',
-          color: Colors.blue,
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 1.5,
+          children: [
+            _buildMenuCard(
+              context,
+              icon: Icons.chat_bubble_outline,
+              label: 'Konsultasi (Chat)',
+              color: Colors.blue,
+              onTap: () {
+                Navigator.pushNamed(context, AppRouter.chatList,
+                    arguments: {'isDoctor': true});
+              },
+            ),
+            _buildMenuCard(
+              context,
+              icon: Icons.people_outline,
+              label: 'Riwayat Pasien',
+              color: Colors.green,
+              onTap: () {},
+            ),
+            _buildMenuCard(
+              context,
+              icon: Icons.account_circle_outlined,
+              label: 'Profil Dokter',
+              color: Colors.purple,
+              onTap: () {
+                Navigator.pushNamed(context, AppRouter.doctorProfile);
+              },
+            ),
+            _buildMenuCard(
+              context,
+              icon: Icons.settings_outlined,
+              label: 'Pengaturan',
+              color: Colors.orange,
+              onTap: () {},
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 24),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
@@ -294,83 +323,64 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     );
   }
 
-  Widget _buildStatCard(
+  Widget _buildMenuCard(
     BuildContext context, {
     required IconData icon,
     required String label,
-    required String value,
     required Color color,
+    required VoidCallback onTap,
   }) {
-    // ... (Use previous stat card code)
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(icon, color: color),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(label, style: TextStyle(color: Colors.grey.shade600)),
-              ],
+          ],
+          border: Border.all(color: color.withOpacity(0.1)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 32),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Future<void> _uploadProof(BuildContext context) async {
-    // 1. Pick Image
-    // 2. Upload to Storage
-    // 3. Update Firestore 'proofUrl'
-
-    // Karena kita belum setup full Storage logic di AuthProvider/Service,
-    // Saya akan buat simple mock atau direct call disini untuk demo.
-    // Jika user belum aktifkan Storage, ini akan error.
-    // Untuk amannya, kita pakai Mock URL dulu jika Storage error, atau alert.
-
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-          'Fitur Upload sedang disiapkan... Menggunakan data simulasi.',
-        ),
-      ),
+          content: Text(
+              'Fitur Upload sedang disiapkan... Menggunakan data simulasi.')),
     );
 
-    // Simulasi Upload berhasil
     try {
       final user = context.read<AuthProvider>().userModel;
       if (user != null) {
-        await FirebaseFirestore.instance.collection('users').doc(user.id).update({
-          'proof_url':
-              'https://placehold.co/400x600/png?text=Bukti+Dokter', // Mock Image
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.id)
+            .update({
+          'proof_url': 'https://placehold.co/400x600/png?text=Bukti+Dokter',
         });
 
         if (mounted) {
