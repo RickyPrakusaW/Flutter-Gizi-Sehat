@@ -26,6 +26,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   late TextEditingController _practiceLocationController;
   late TextEditingController _alumniController;
   late TextEditingController _experienceController;
+  late TextEditingController _priceController;
 
   bool _isLoading = false;
 
@@ -43,6 +44,26 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
     _alumniController = TextEditingController(text: user?.alumni ?? '');
     _experienceController =
         TextEditingController(text: user?.experienceYear?.toString() ?? '');
+    _priceController = TextEditingController();
+
+    if (user != null) {
+      _fetchDoctorData(user.id);
+    }
+  }
+
+  Future<void> _fetchDoctorData(String uid) async {
+    try {
+      final doc =
+          await FirebaseFirestore.instance.collection('doctors').doc(uid).get();
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        if (data['price'] != null) {
+          _priceController.text = data['price'].toString();
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching doctor data: $e");
+    }
   }
 
   @override
@@ -55,6 +76,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
     _practiceLocationController.dispose();
     _alumniController.dispose();
     _experienceController.dispose();
+    _priceController.dispose();
     super.dispose();
   }
 
@@ -78,13 +100,20 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
           'alumni': _alumniController.text.trim(),
           'experience_year':
               int.tryParse(_experienceController.text.trim()) ?? 0,
+          'price': _priceController.text.trim(), // Save price
         };
 
-        // Update Firestore
+        // Update Firestore Users
         await FirebaseFirestore.instance
             .collection('users')
             .doc(user.id)
             .update(data);
+
+        // Update Firestore Doctors (Sync)
+        await FirebaseFirestore.instance
+            .collection('doctors')
+            .doc(user.id)
+            .set(data, SetOptions(merge: true));
 
         // Listener in AuthProvider will automatically update the UI
 
@@ -129,12 +158,17 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
 
         if (user != null) {
           // Update Firestore
+          final updateData = {'profile_image': imageUrl};
+
           await FirebaseFirestore.instance
               .collection('users')
               .doc(user.id)
-              .update({
-            'profile_image': imageUrl,
-          });
+              .update(updateData);
+
+          await FirebaseFirestore.instance
+              .collection('doctors')
+              .doc(user.id)
+              .set(updateData, SetOptions(merge: true));
 
           // The AuthProvider stream listener handles the UI update automatically
           if (mounted) {
@@ -235,6 +269,10 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
               const SizedBox(height: 16),
               _buildTextField('Lokasi Praktik (RS/Klinik)',
                   _practiceLocationController, Icons.local_hospital),
+              const SizedBox(height: 16),
+              _buildTextField(
+                  'Biaya Konsultasi (Rp)', _priceController, Icons.attach_money,
+                  isNumber: true),
               const SizedBox(height: 16),
               _buildTextField('Universitas Alumni', _alumniController,
                   Icons.school_outlined),

@@ -22,6 +22,8 @@ import 'package:gizi_sehat_mobile_app/features/marketplace/screens/invoice_scree
 import 'package:gizi_sehat_mobile_app/features/admin/presentation/admin_dashboard_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/doctor_dashboard/presentation/doctor_dashboard_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/doctor_dashboard/presentation/doctor_profile_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor_dashboard/presentation/doctor_schedule_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor_dashboard/presentation/doctor_appointments_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/dashboard/presentation/pages/profile_page.dart';
 import 'package:gizi_sehat_mobile_app/features/nutrition/screens/growth_input_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/nutrition/screens/growth_result_screen.dart';
@@ -34,6 +36,7 @@ import 'package:gizi_sehat_mobile_app/features/doctor/presentation/pages/doctor_
 import 'package:gizi_sehat_mobile_app/features/doctor/presentation/pages/book_appointment_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/doctor/presentation/pages/appointment_patient_details_screen.dart';
 import 'package:gizi_sehat_mobile_app/features/doctor/presentation/pages/favorite_doctors_screen.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor/data/models/doctor_model.dart';
 
 class AppRouter {
   static const String authGate = '/auth-gate';
@@ -57,6 +60,8 @@ class AppRouter {
   static const String adminDashboard = '/admin-dashboard';
   static const String doctorDashboard = '/doctor-dashboard';
   static const String doctorProfile = '/doctor-profile';
+  static const String doctorSchedule = '/doctor-schedule';
+  static const String doctorAppointments = '/doctor-appointments'; // NEW
   static const String profile = '/profile';
   static const String growthInput = '/growth-input';
   static const String growthResult = '/growth-result';
@@ -194,6 +199,18 @@ class AppRouter {
           settings: settings,
         );
 
+      case doctorSchedule:
+        return MaterialPageRoute(
+          builder: (_) => const DoctorScheduleScreen(),
+          settings: settings,
+        );
+
+      case doctorAppointments:
+        return MaterialPageRoute(
+          builder: (_) => const DoctorAppointmentsScreen(),
+          settings: settings,
+        );
+
       case profile:
         return MaterialPageRoute(
           builder: (_) => const ProfilePage(),
@@ -233,14 +250,14 @@ class AppRouter {
         );
 
       case doctorDetail:
-        final doctor = settings.arguments as Map<String, dynamic>;
+        final doctor = settings.arguments as DoctorModel;
         return MaterialPageRoute(
           builder: (_) => DoctorDetailScreen(doctor: doctor),
           settings: settings,
         );
 
       case appointmentBooking:
-        final doctor = settings.arguments as Map<String, dynamic>;
+        final doctor = settings.arguments as DoctorModel;
         return MaterialPageRoute(
           builder: (_) => BookAppointmentScreen(doctor: doctor),
           settings: settings,

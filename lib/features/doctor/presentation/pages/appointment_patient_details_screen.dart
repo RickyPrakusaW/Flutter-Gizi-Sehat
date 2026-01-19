@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gizi_sehat_mobile_app/app_router.dart';
+import 'package:provider/provider.dart';
+import 'package:gizi_sehat_mobile_app/features/auth/state/auth_provider.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor/data/services/appointment_service.dart';
+import 'package:gizi_sehat_mobile_app/features/dashboard/data/models/child_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AppointmentPatientDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> doctor;
@@ -23,13 +28,90 @@ class _AppointmentPatientDetailsScreenState
     extends State<AppointmentPatientDetailsScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  int _selectedProfileIndex = 1; // Default My Self
+  int _selectedProfileIndex = 0; // 0 = Me, 1+ = Children
+  List<ChildModel> _children = [];
+  bool _isLoadingChildren = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchChildren();
+  }
+
+  Future<void> _fetchChildren() async {
+    final user = Provider.of<AuthProvider>(context, listen: false).userModel;
+    if (user != null) {
+      try {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.id)
+            .collection('children')
+            .get();
+
+        if (mounted) {
+          setState(() {
+            _children = snapshot.docs
+                .map((doc) => ChildModel.fromMap(doc.data(), doc.id))
+                .toList();
+            _isLoadingChildren = false;
+          });
+        }
+      } catch (e) {
+        debugPrint("Error fetching children: $e");
+        if (mounted) setState(() => _isLoadingChildren = false);
+      }
+    }
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  bool _isSaving = false;
+
+  Future<void> _submitAppointment() async {
+    final user = Provider.of<AuthProvider>(context, listen: false).userModel;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Silakan login terlebih dahulu.")));
+      return;
+    }
+    if (_nameController.text.isEmpty || _phoneController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Harap isi nama dan kontak pasien.")));
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      if (widget.doctor['id'] == null) throw "ID Dokter tidak valid";
+
+      await AppointmentService().createAppointment(
+        doctorId: widget.doctor['id']!,
+        parentId: user.id,
+        patientName: _nameController.text,
+        contactNumber: _phoneController.text,
+        date: widget.date,
+        time: widget.time,
+        doctorName: widget.doctor['name'] ?? 'Dokter',
+        doctorImage: widget.doctor['imageUrl'] ?? widget.doctor['image'] ?? '',
+        doctorSpecialty: widget.doctor['specialty'] ?? 'Umum',
+      );
+
+      if (!mounted) return;
+      _showSuccessDialog();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Gagal booking: $e")));
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   void _showSuccessDialog() {
@@ -118,19 +200,6 @@ class _AppointmentPatientDetailsScreenState
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    'Edit your appointment',
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -141,6 +210,8 @@ class _AppointmentPatientDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().userModel;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -194,31 +265,57 @@ class _AppointmentPatientDetailsScreenState
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                _buildAddButton(),
-                const SizedBox(width: 16),
-                _buildProfileItem(
-                  1,
-                  "My Self",
-                  "https://placehold.co/200x200/png?text=Me",
-                ),
-                const SizedBox(width: 16),
-                _buildProfileItem(
-                  2,
-                  "My child",
-                  "https://placehold.co/200x200/png?text=Baby",
-                ),
-              ],
+            SizedBox(
+              height: 110,
+              child: _isLoadingChildren
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        _buildAddButton(),
+                        const SizedBox(width: 16),
+                        // Self
+                        _buildProfileItem(
+                          0,
+                          "Me",
+                          user?.profileImage ?? '',
+                          isUser: true,
+                          onTap: () {
+                            setState(() {
+                              _selectedProfileIndex = 0;
+                              _nameController.text = user?.name ?? '';
+                            });
+                          },
+                        ),
+                        // Children
+                        ..._children.asMap().entries.map((entry) {
+                          final index = entry.key + 1;
+                          final child = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 16),
+                            child: _buildProfileItem(
+                              index,
+                              child.name,
+                              child.profileImage ?? '',
+                              isUser: false,
+                              onTap: () {
+                                setState(() {
+                                  _selectedProfileIndex = index;
+                                  _nameController.text = child.name;
+                                });
+                              },
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
             ),
-            const SizedBox(height: 40),
-
-            // Button
+            const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: _showSuccessDialog,
+                onPressed: _isSaving ? null : _submitAppointment,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF5C9DFF),
                   shape: RoundedRectangleBorder(
@@ -226,14 +323,23 @@ class _AppointmentPatientDetailsScreenState
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  "Next",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Book Appointment',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -243,6 +349,10 @@ class _AppointmentPatientDetailsScreenState
   }
 
   Widget _buildDoctorCard() {
+    final price = widget.doctor['price'] != null
+        ? "Rp ${widget.doctor['price']}"
+        : "Rp -";
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -314,7 +424,7 @@ class _AppointmentPatientDetailsScreenState
               const Icon(Icons.favorite, color: Colors.red, size: 20),
               const SizedBox(height: 16),
               Text(
-                "\$ 28.00/hr", // Dummy price or from data
+                price,
                 style: const TextStyle(
                   color: Color(0xFF5C9DFF),
                   fontWeight: FontWeight.bold,
@@ -375,29 +485,37 @@ class _AppointmentPatientDetailsScreenState
     );
   }
 
-  Widget _buildProfileItem(int index, String label, String imageUrl) {
+  Widget _buildProfileItem(int index, String label, String imageUrl,
+      {required bool isUser, required VoidCallback onTap}) {
     bool isSelected = _selectedProfileIndex == index;
+
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedProfileIndex = index;
-        });
-      },
+      onTap: onTap,
       child: Column(
         children: [
           Container(
             width: 80,
-            height: 80, // Taller card aspect
+            height: 80,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              image: DecorationImage(
-                image: CachedNetworkImageProvider(imageUrl),
-                fit: BoxFit.cover,
-              ),
+              image: imageUrl.isNotEmpty && imageUrl.startsWith('http')
+                  ? DecorationImage(
+                      image: CachedNetworkImageProvider(imageUrl),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+              color: imageUrl.isEmpty ? Colors.grey.shade200 : null,
               border: isSelected
                   ? Border.all(color: const Color(0xFF5C9DFF), width: 2)
                   : null,
             ),
+            child: imageUrl.isEmpty
+                ? Icon(
+                    isUser ? Icons.person : Icons.child_care,
+                    size: 30,
+                    color: Colors.grey,
+                  )
+                : null,
           ),
           const SizedBox(height: 8),
           Text(
@@ -408,9 +526,13 @@ class _AppointmentPatientDetailsScreenState
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               fontSize: 12,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
   }
+
+  // End of Class
 }

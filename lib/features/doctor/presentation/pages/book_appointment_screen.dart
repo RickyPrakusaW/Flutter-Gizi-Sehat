@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:gizi_sehat_mobile_app/app_router.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor/data/models/doctor_model.dart';
+import 'package:intl/intl.dart';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BookAppointmentScreen extends StatefulWidget {
-  final Map<String, dynamic> doctor;
+  final DoctorModel doctor;
 
   const BookAppointmentScreen({super.key, required this.doctor});
 
@@ -11,16 +15,94 @@ class BookAppointmentScreen extends StatefulWidget {
 }
 
 class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
-  int _selectedDateIndex = 1; // Default to Tomorrow
+  int _selectedDateIndex = 0;
   String? _selectedTimeSlot;
+  Map<String, List<String>> _fetchedSchedules = {};
+  bool _isLoading = true;
+  final List<String> _existingAppointments = [];
+
+  // Generate next 7 days
+  final List<DateTime> _dates =
+      List.generate(7, (index) => DateTime.now().add(Duration(days: index)));
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchedSchedules = widget.doctor.schedules; // Initialize with passed data
+    _fetchLatestSchedule();
+  }
+
+  Future<void> _fetchLatestSchedule() async {
+    try {
+      // 1. Fetch Doctor's Schedule
+      final doc = await FirebaseFirestore.instance
+          .collection('doctors')
+          .doc(widget.doctor.id)
+          .get();
+
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        if (data['schedules'] != null) {
+          if (mounted) {
+            setState(() {
+              _fetchedSchedules = Map<String, List<String>>.from(
+                  (data['schedules'] as Map).map(
+                      (key, value) => MapEntry(key, List<String>.from(value))));
+            });
+          }
+        }
+      }
+
+      // 2. Fetch Existing Bookings for current selection
+      await _fetchBookedSlots();
+    } catch (e) {
+      debugPrint("Error fetching schedule: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _fetchBookedSlots() async {
+    final formattedDate =
+        DateFormat('d MMMM yyyy').format(_dates[_selectedDateIndex]);
+
+    try {
+      final query = await FirebaseFirestore.instance
+          .collection('appointments')
+          .where('doctorId', isEqualTo: widget.doctor.id)
+          .where('date', isEqualTo: formattedDate)
+          .get();
+
+      final bookedTimes = <String>[];
+      for (var doc in query.docs) {
+        final data = doc.data();
+        if (data['status'] != 'cancelled') {
+          bookedTimes.add(data['time']);
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _existingAppointments.clear();
+          _existingAppointments.addAll(bookedTimes);
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching bookings: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Get formatted date key for the selected day 'yyyy-MM-dd'
+    final dateKey = DateFormat('yyyy-MM-dd').format(_dates[_selectedDateIndex]);
+    final availableSlots = _fetchedSchedules[dateKey] ?? [];
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          "Select Time",
+          "Pilih Jadwal",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -35,169 +117,157 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Doctor Card
-            _buildDoctorCard(),
-
-            // Date Selection
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: Row(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDateCard(
-                      0, "Today, 23 Feb", "No slots available", false),
-                  const SizedBox(width: 12),
-                  _buildDateCard(
-                      1, "Tomorrow, 24 Feb", "9 slots available", true),
-                  const SizedBox(width: 12),
-                  _buildDateCard(
-                      2, "Thursday, 25 Feb", "10 slots available", false),
-                ],
-              ),
-            ),
+                  // Doctor Card
+                  _buildDoctorCard(),
 
-            const SizedBox(height: 10),
-            const Center(
-              child: Text(
-                "Today, 23 Feb",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D3748),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
+                  // Date Selection
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 20),
+                    child: Row(
+                      children: List.generate(_dates.length, (index) {
+                        final date = _dates[index];
+                        final dateKey = DateFormat('yyyy-MM-dd').format(date);
+                        final slots = _fetchedSchedules[dateKey] ?? [];
+                        final isAvailable = slots.isNotEmpty;
+                        final label = index == 0
+                            ? "Hari Ini"
+                            : index == 1
+                                ? "Besok"
+                                : DateFormat('EEEE').format(date);
+                        final fullDate = DateFormat('d MMM').format(date);
 
-            // Time Slots
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                "Afternoon 7 slots",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D3748),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  _buildTimeSlot("1:00 PM"),
-                  _buildTimeSlot("1:30 PM"),
-                  _buildTimeSlot("2:00 PM"),
-                  _buildTimeSlot("2:30 PM"),
-                  _buildTimeSlot("3:00 PM"),
-                  _buildTimeSlot("3:30 PM"),
-                  _buildTimeSlot("4:00 PM"),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                "Evening 5 slots",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D3748),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  _buildTimeSlot("5:00 PM"),
-                  _buildTimeSlot("5:30 PM"),
-                  _buildTimeSlot("6:00 PM"),
-                  _buildTimeSlot("6:30 PM"),
-                  _buildTimeSlot("7:00 PM"),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            // Action Buttons
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Navigate to Patient Details
-                    Navigator.pushNamed(
-                      context,
-                      AppRouter.appointmentPatientDetails,
-                      arguments: {
-                        'doctor': widget.doctor,
-                        'date':
-                            'Tomorrow, 24 Feb', // Mock date as logic isn't dynamic yet
-                        'time':
-                            _selectedTimeSlot ?? '10:00 AM', // Provide default
-                      },
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5C9DFF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: _buildDateCard(index, "$label, $fullDate",
+                              "${slots.length} jam tersedia", isAvailable),
+                        );
+                      }),
                     ),
                   ),
-                  child: const Text(
-                    "Next Step",
-                    style: TextStyle(
+
+                  const SizedBox(height: 10),
+                  Center(
+                    child: Text(
+                      DateFormat('EEEE, d MMMM yyyy')
+                          .format(_dates[_selectedDateIndex]),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF5C9DFF)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                        color: Color(0xFF2D3748),
+                      ),
                     ),
                   ),
-                  child: const Text(
-                    "Contact Clinic",
-                    style: TextStyle(
+                  const SizedBox(height: 20),
+
+                  // Time Slots
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      availableSlots.isEmpty
+                          ? "Tidak ada jadwal tersedia hari ini."
+                          : "Jam Tersedia",
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF5C9DFF)),
+                        color: Color(0xFF2D3748),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  if (availableSlots.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          ...[
+                            '09:00',
+                            '09:30',
+                            '10:00',
+                            '10:30',
+                            '11:00',
+                            '11:30',
+                            '13:00',
+                            '13:30',
+                            '14:00',
+                            '14:30',
+                            '15:00',
+                            '15:30',
+                            '16:00',
+                            '16:30',
+                            '19:00',
+                            '19:30',
+                            '20:00',
+                            '20:30'
+                          ].map((time) {
+                            // Check if this slot is in the doctor's enabled availableSlots
+                            bool isEnabled = availableSlots.contains(time);
+
+                            // ALSO check if it's already booked
+                            if (_existingAppointments.contains(time)) {
+                              isEnabled = false;
+                              // If booked, we treat it as unavailable
+                            }
+
+                            return _buildTimeSlot(time, isEnabled);
+                          }),
+                        ],
+                      ),
+                    ),
+
+                  const SizedBox(height: 40),
+
+                  // Action Buttons
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _selectedTimeSlot == null
+                            ? null
+                            : () {
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRouter.appointmentPatientDetails,
+                                  arguments: {
+                                    'doctor': widget.doctor.toMap(),
+                                    'date': DateFormat('d MMMM yyyy')
+                                        .format(_dates[_selectedDateIndex]),
+                                    'time': _selectedTimeSlot,
+                                  },
+                                );
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF5C9DFF),
+                          disabledBackgroundColor: Colors.grey.shade300,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          "Lanjut",
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                ],
               ),
             ),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
     );
   }
 
@@ -225,8 +295,16 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
             decoration: BoxDecoration(
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(12),
+              image: widget.doctor.imageUrl.isNotEmpty
+                  ? DecorationImage(
+                      image: NetworkImage(widget.doctor.imageUrl),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
-            child: const Icon(Icons.person, size: 30, color: Colors.grey),
+            child: widget.doctor.imageUrl.isEmpty
+                ? const Icon(Icons.person, size: 30, color: Colors.grey)
+                : null,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -236,19 +314,23 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      widget.doctor['name'] ?? "Dr. Name",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D3748),
+                    Expanded(
+                      child: Text(
+                        widget.doctor.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2D3748),
+                        ),
                       ),
                     ),
                     const Icon(Icons.favorite, color: Colors.red, size: 20),
                   ],
                 ),
                 Text(
-                  "Upasana Dental Clinic, salt lake",
+                  widget.doctor.practiceLocation.isNotEmpty
+                      ? widget.doctor.practiceLocation
+                      : "Lokasi Praktik",
                   style: TextStyle(
                     color: Colors.grey.shade500,
                     fontSize: 12,
@@ -256,13 +338,14 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 ),
                 const SizedBox(height: 4),
                 Row(
-                  children: [
-                    const Icon(Icons.star, size: 14, color: Colors.amber),
-                    const Icon(Icons.star, size: 14, color: Colors.amber),
-                    const Icon(Icons.star, size: 14, color: Colors.amber),
-                    const Icon(Icons.star, size: 14, color: Colors.amber),
-                    Icon(Icons.star, size: 14, color: Colors.grey.shade300),
-                  ],
+                  children: List.generate(
+                      5,
+                      (index) => Icon(
+                          index < (widget.doctor.rating / 20).round()
+                              ? Icons.star
+                              : Icons.star_border,
+                          size: 14,
+                          color: Colors.amber)),
                 ),
               ],
             ),
@@ -274,36 +357,42 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
   Widget _buildDateCard(int index, String date, String status, bool available) {
     bool isSelected = _selectedDateIndex == index;
-    // The image logic: Green BG if available/selected? Image shows Green if Selected.
-    // "No slots available" is greyed out.
-    // I'll make a simple selectable logic.
 
     return GestureDetector(
       onTap: () {
         setState(() {
           _selectedDateIndex = index;
+          _selectedTimeSlot = null; // Reset time selection on date change
         });
+        _fetchBookedSlots(); // Fetch bookings for the new date
       },
       child: Container(
         width: 140,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF5C9DFF) : const Color(0xFFF7F9FC),
+          color: isSelected
+              ? const Color(0xFF5C9DFF)
+              : (available ? const Color(0xFFF7F9FC) : Colors.grey.shade200),
           borderRadius: BorderRadius.circular(8),
+          border: isSelected ? null : Border.all(color: Colors.grey.shade200),
         ),
         child: Column(
           children: [
             Text(
               date,
+              textAlign: TextAlign.center,
               style: TextStyle(
-                color: isSelected ? Colors.white : const Color(0xFF2D3748),
+                color: isSelected
+                    ? Colors.white
+                    : (available ? const Color(0xFF2D3748) : Colors.grey),
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
+                fontSize: 12,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               status,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: isSelected
                     ? Colors.white.withOpacity(0.8)
@@ -317,28 +406,33 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     );
   }
 
-  Widget _buildTimeSlot(String time) {
+  Widget _buildTimeSlot(String time, bool isAvailable) {
     bool isSelected = _selectedTimeSlot == time;
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedTimeSlot = time;
-        });
-      },
+      onTap: isAvailable
+          ? () {
+              setState(() {
+                _selectedTimeSlot = time;
+              });
+            }
+          : null,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFF5C9DFF)
-              : const Color(0xFFE0F2F1), // Light Green bg for slots
+          color: isAvailable
+              ? (isSelected ? const Color(0xFF5C9DFF) : const Color(0xFFE0F2F1))
+              : Colors.grey.shade200, // Gray for unavailable
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           time,
           style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFF5C9DFF),
+            color: isAvailable
+                ? (isSelected ? Colors.white : const Color(0xFF5C9DFF))
+                : Colors.grey, // Gray text for unavailable
             fontWeight: FontWeight.bold,
             fontSize: 13,
+            decoration: isAvailable ? null : TextDecoration.lineThrough,
           ),
         ),
       ),

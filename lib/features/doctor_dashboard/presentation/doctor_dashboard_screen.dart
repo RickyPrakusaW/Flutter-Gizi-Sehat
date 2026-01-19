@@ -272,7 +272,18 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               icon: Icons.people_outline,
               label: 'Riwayat Pasien',
               color: Colors.green,
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamed(context, AppRouter.doctorAppointments);
+              },
+            ),
+            _buildMenuCard(
+              context,
+              icon: Icons.calendar_today_outlined,
+              label: 'Atur Jadwal',
+              color: Colors.orange,
+              onTap: () {
+                Navigator.pushNamed(context, AppRouter.doctorSchedule);
+              },
             ),
             _buildMenuCard(
               context,

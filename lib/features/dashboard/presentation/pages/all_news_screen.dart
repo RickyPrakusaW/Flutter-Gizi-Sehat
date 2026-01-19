@@ -12,9 +12,14 @@ class AllNewsScreen extends StatefulWidget {
 
 class _AllNewsScreenState extends State<AllNewsScreen> {
   final NewsParentingService _newsService = NewsParentingService();
-  List<NewsArticle> _allNews = [];
-  List<NewsArticle> _filteredNews = [];
+  final List<NewsArticle> _allNews = [];
   bool _isLoading = true;
+  bool _hasMore = true;
+  int _currentPage = 1;
+  final ScrollController _scrollController = ScrollController();
+
+  // Filtering
+  List<NewsArticle> _filteredNews = [];
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'All';
 
@@ -22,14 +27,43 @@ class _AllNewsScreenState extends State<AllNewsScreen> {
   void initState() {
     super.initState();
     _loadNews();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+            _scrollController.position.maxScrollExtent &&
+        !_isLoading &&
+        _hasMore) {
+      _loadNews();
+    }
   }
 
   Future<void> _loadNews() async {
+    if (_isLoading && _currentPage > 1) return; // Prevent double loading
+
+    setState(() => _isLoading = true);
+
     try {
-      final news = await _newsService.getNews();
+      final news = await _newsService.getNews(page: _currentPage, limit: 10);
+
       setState(() {
-        _allNews = news;
-        _filteredNews = news;
+        if (news.isEmpty) {
+          _hasMore = false;
+        } else {
+          _allNews.addAll(news);
+          _currentPage++; // Prepare for next page
+        }
+
+        // Apply current filter/search to newly loaded data
+        _filterNews(_searchController.text);
         _isLoading = false;
       });
     } catch (e) {
@@ -43,8 +77,8 @@ class _AllNewsScreenState extends State<AllNewsScreen> {
       _filteredNews = _allNews.where((article) {
         final matchesQuery =
             article.title.toLowerCase().contains(query.toLowerCase());
-        final matchesFilter = _selectedFilter == 'All' ||
-            article.sourceName == _selectedFilter; // Example filter logic
+        final matchesFilter =
+            _selectedFilter == 'All' || article.sourceName == _selectedFilter;
         return matchesQuery && matchesFilter;
       }).toList();
     });
@@ -145,16 +179,24 @@ class _AllNewsScreenState extends State<AllNewsScreen> {
 
           // News List
           Expanded(
-            child: _isLoading
+            child: _isLoading && _allNews.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : _filteredNews.isEmpty
                     ? const Center(child: Text("No articles found"))
                     : ListView.separated(
+                        controller: _scrollController,
                         padding: const EdgeInsets.all(16),
-                        itemCount: _filteredNews.length,
+                        itemCount: _filteredNews.length + (_hasMore ? 1 : 0),
                         separatorBuilder: (context, index) =>
                             const SizedBox(height: 16),
                         itemBuilder: (context, index) {
+                          if (index == _filteredNews.length) {
+                            return const Center(
+                                child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(),
+                            ));
+                          }
                           final article = _filteredNews[index];
                           // Use SizedBox to constrain the height of the card in the vertical list if necessary
                           // Since NewsCard was designed for horizontal, let's adjust or wrap it.

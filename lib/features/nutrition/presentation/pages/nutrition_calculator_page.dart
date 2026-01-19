@@ -19,7 +19,6 @@ class _NutritionCalculatorPageState extends State<NutritionCalculatorPage> {
   bool _isMale = true;
   final _ageController = TextEditingController(); // months
   final _heightController = TextEditingController(); // cm
-  final _weightController = TextEditingController(); // kg
 
   // Results
   bool _calculated = false;
@@ -241,15 +240,12 @@ class _NutritionCalculatorPageState extends State<NutritionCalculatorPage> {
     if (_chartData.isEmpty) return const SizedBox.shrink();
 
     // Prepare chart spots
-    final List<FlSpot> sd2negSpots = _chartData
-        .map((e) => FlSpot(e.month.toDouble(), e.sd2neg))
-        .toList();
-    final List<FlSpot> sd0Spots = _chartData
-        .map((e) => FlSpot(e.month.toDouble(), e.sd0))
-        .toList();
-    final List<FlSpot> sd2posSpots = _chartData
-        .map((e) => FlSpot(e.month.toDouble(), e.sd2pos))
-        .toList();
+    final List<FlSpot> sd2negSpots =
+        _chartData.map((e) => FlSpot(e.month.toDouble(), e.sd2neg)).toList();
+    final List<FlSpot> sd0Spots =
+        _chartData.map((e) => FlSpot(e.month.toDouble(), e.sd0)).toList();
+    final List<FlSpot> sd2posSpots =
+        _chartData.map((e) => FlSpot(e.month.toDouble(), e.sd2pos)).toList();
 
     // User Spot
     final double userAge = double.tryParse(_ageController.text) ?? 0;
@@ -315,11 +311,11 @@ class _NutritionCalculatorPageState extends State<NutritionCalculatorPage> {
                       show: true,
                       getDotPainter: (spot, percent, barData, index) =>
                           FlDotCirclePainter(
-                            radius: 6,
-                            color: Colors.blue,
-                            strokeWidth: 2,
-                            strokeColor: Colors.white,
-                          ),
+                        radius: 6,
+                        color: Colors.blue,
+                        strokeWidth: 2,
+                        strokeColor: Colors.white,
+                      ),
                     ),
                   ),
                 ],

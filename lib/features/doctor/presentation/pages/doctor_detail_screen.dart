@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gizi_sehat_mobile_app/app_router.dart';
+import 'package:gizi_sehat_mobile_app/features/doctor/data/models/doctor_model.dart';
 
 class DoctorDetailScreen extends StatelessWidget {
-  final Map<String, dynamic> doctor;
+  final DoctorModel doctor;
 
   const DoctorDetailScreen({super.key, required this.doctor});
 
@@ -12,7 +13,7 @@ class DoctorDetailScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          "Doctor Details",
+          "Detail Dokter",
           style: TextStyle(
               color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
         ),
@@ -37,17 +38,45 @@ class DoctorDetailScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildStatBox("100", "Running"),
-                      _buildStatBox("500", "Ongoing"),
-                      _buildStatBox("700", "Patient"),
+                      _buildStatBox(
+                          "${doctor.patientStories}", "Patient Stories"),
+                      _buildStatBox(
+                          "${doctor.experience ?? '0'}", "Experience"),
+                      _buildStatBox("${doctor.rating}%", "Rating"),
                     ],
                   ),
                 ),
                 const SizedBox(height: 30),
+                if (doctor.about.isNotEmpty) ...[
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      "About Doctor",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2D3748),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      doctor.about,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 14,
+                        height: 1.6,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                ],
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
-                    "Services",
+                    "Informasi Praktik",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -56,24 +85,17 @@ class DoctorDetailScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
+                _buildServiceItem("STR:",
+                    doctor.strNumber.isNotEmpty ? doctor.strNumber : '-'),
+                _buildServiceItem("SIP:",
+                    doctor.sipNumber.isNotEmpty ? doctor.sipNumber : '-'),
                 _buildServiceItem(
-                    "1.", "Patient care should be the number one priority."),
+                    "Alumni:", doctor.alumni.isNotEmpty ? doctor.alumni : '-'),
                 _buildServiceItem(
-                    "2.", "If you run your practice you know how frustrating."),
-                _buildServiceItem(
-                    "3.", "That's why some of appointment reminder system."),
-                const SizedBox(height: 30),
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  height: 200,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.grey.shade200,
-                  ),
-                  child: Center(
-                      child: Icon(Icons.map,
-                          size: 50, color: Colors.grey.shade400)),
-                ),
+                    "Lokasi:",
+                    doctor.practiceLocation.isNotEmpty
+                        ? doctor.practiceLocation
+                        : '-'),
                 const SizedBox(height: 30),
               ],
             ),
@@ -111,9 +133,10 @@ class DoctorDetailScreen extends StatelessWidget {
                           context,
                           AppRouter.chat,
                           arguments: {
-                            'name': doctor['name'],
-                            'image': doctor['image'],
+                            'name': doctor.name,
+                            'image': doctor.imageUrl,
                             'isDoctor': true,
+                            'doctorId': doctor.id, // Pass ID for chat logic
                           },
                         );
                       },
@@ -129,7 +152,7 @@ class DoctorDetailScreen extends StatelessWidget {
                         onPressed: () => Navigator.pushNamed(
                           context,
                           AppRouter.appointmentBooking,
-                          arguments: doctor,
+                          arguments: doctor, // Pass model to booking
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF5C9DFF),
@@ -138,7 +161,7 @@ class DoctorDetailScreen extends StatelessWidget {
                           ),
                         ),
                         child: const Text(
-                          "Book Now",
+                          "Book Appointment",
                           style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -172,6 +195,7 @@ class DoctorDetailScreen extends StatelessWidget {
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 80,
@@ -179,8 +203,16 @@ class DoctorDetailScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.blue.shade50,
               borderRadius: BorderRadius.circular(12),
+              image: doctor.imageUrl.isNotEmpty
+                  ? DecorationImage(
+                      image: NetworkImage(doctor.imageUrl),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
-            child: const Icon(Icons.person, size: 40, color: Colors.blue),
+            child: doctor.imageUrl.isEmpty
+                ? const Icon(Icons.person, size: 40, color: Colors.blue)
+                : null,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -192,7 +224,7 @@ class DoctorDetailScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        doctor['name'] ?? "Dr. Name",
+                        doctor.name,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -204,7 +236,7 @@ class DoctorDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  doctor['specialty'] ?? "Specialist",
+                  doctor.specialty,
                   style: TextStyle(
                     color: Colors.grey.shade600,
                     fontSize: 14,
@@ -213,17 +245,22 @@ class DoctorDetailScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.star, size: 16, color: Colors.amber),
-                    const Icon(Icons.star, size: 16, color: Colors.amber),
-                    const Icon(Icons.star, size: 16, color: Colors.amber),
-                    const Icon(Icons.star, size: 16, color: Colors.amber),
-                    Icon(Icons.star, size: 16, color: Colors.grey.shade300),
+                    // Generate stars based on rating (simplified)
+                    ...List.generate(5, (index) {
+                      return Icon(
+                        index < (doctor.rating / 20).round()
+                            ? Icons.star
+                            : Icons.star_border,
+                        size: 16,
+                        color: Colors.amber,
+                      );
+                    }),
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  "Rp 150.000 / jam",
-                  style: TextStyle(
+                Text(
+                  "Rp ${doctor.price}",
+                  style: const TextStyle(
                     color: Color(0xFF5C9DFF),
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -249,8 +286,9 @@ class DoctorDetailScreen extends StatelessWidget {
         children: [
           Text(
             value,
+            textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 20,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Color(0xFF2D3748),
             ),
@@ -258,8 +296,9 @@ class DoctorDetailScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 12,
               color: Colors.grey.shade500,
             ),
           ),
@@ -268,28 +307,30 @@ class DoctorDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceItem(String number, String text) {
+  Widget _buildServiceItem(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            number,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF5C9DFF),
-              fontSize: 16,
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF5C9DFF),
+                fontSize: 14,
+              ),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              text,
+              value,
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 14,
-                height: 1.5,
               ),
             ),
           ),
